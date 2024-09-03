@@ -19,7 +19,7 @@ import java.util.Set;
 @Entity
 @Getter
 
-public class User implements UserDetails {
+public class User{
 
     @Id @GeneratedValue
     @Column(name="user_id")
@@ -38,7 +38,7 @@ public class User implements UserDetails {
     private LocalDate lastLoginDate;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+
     private Set<Accession> accessions = new HashSet<>();
 
     public void addAccession(Accession accession) {
@@ -58,38 +58,5 @@ public class User implements UserDetails {
         this.phoneNumber = phoneNumber;
         this.registrationDate=registrationDate;
 
-    }
-
-
-
-
-    @Override
-    @JsonIgnore
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    @JsonIgnore
-    public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
-    }
-
-    @Override
-    @JsonIgnore
-    public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
-    }
-
-    @Override
-    @JsonIgnore
-    public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
-    }
-
-    @Override
-    @JsonIgnore
-    public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
     }
 }
