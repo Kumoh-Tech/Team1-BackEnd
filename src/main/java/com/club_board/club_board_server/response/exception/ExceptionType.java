@@ -18,12 +18,13 @@ public enum ExceptionType {
 
     //User
     USER_ALREADY_EXIST(HttpStatus.CONFLICT,"U001","이미 존재하는 회원입니다."),
-    NOT_CORRECT_PASSWORD(UNAUTHORIZED,"U002","비밀번호와 비밀번호 확인이 일치하지 않습니다."),
-    INVALID_EMAIL_FORMAT(BAD_REQUEST,"U003","이메일 형식이 올바르지 않습니다."),
-    EMAIL_SEND_ERROR(INTERNAL_SERVER_ERROR,"U004","알수없는 오류로 인해 이메일 전송에 실패하였습니다."),
-    INVALID_EMAIL_CODE(UNAUTHORIZED,"U005","인증번호가 일치하지 않습니다."),
-    EXPIRED_EMAIL_CODE(BAD_REQUEST,"U006","만료된 인증번호입니다."),
-    EMAIL_NOT_VERIFIED(UNAUTHORIZED,"U007","이메일 인증이 완료되지 않았습니다."),
+    USER_NOT_FOUND(NOT_FOUND,"U002","존재하지 않는 유저입니다."),
+    NOT_CORRECT_PASSWORD(UNAUTHORIZED,"U003","비밀번호와 비밀번호 확인이 일치하지 않습니다."),
+    INVALID_EMAIL_FORMAT(BAD_REQUEST,"U004","이메일 형식이 올바르지 않습니다."),
+    EMAIL_SEND_ERROR(INTERNAL_SERVER_ERROR,"U005","알수없는 오류로 인해 이메일 전송에 실패하였습니다."),
+    INVALID_EMAIL_CODE(UNAUTHORIZED,"U006","인증번호가 일치하지 않습니다."),
+    EXPIRED_EMAIL_CODE(BAD_REQUEST,"U007","만료된 인증번호입니다."),
+    EMAIL_NOT_VERIFIED(UNAUTHORIZED,"U008","이메일 인증이 완료되지 않았습니다."),
 
     //Auth
     INVALID_LOGIN(HttpStatus.UNAUTHORIZED,"A001","아이디 또는 비밀번호가 일치하지 않습니다."),
