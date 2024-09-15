@@ -15,3 +15,6 @@ public class ClubCategory {
     @Column(name="category_name")
     private String categoryName;
 }
+
+
+
