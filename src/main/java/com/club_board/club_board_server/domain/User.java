@@ -1,25 +1,16 @@
 package com.club_board.club_board_server.domain;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @NoArgsConstructor
 @Entity
 @Getter
-
-public class User{
+public class User {
 
     @Id @GeneratedValue
     @Column(name="user_id")
@@ -38,7 +29,6 @@ public class User{
     private LocalDate lastLoginDate;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-
     private Set<Accession> accessions = new HashSet<>();
 
     public void addAccession(Accession accession) {
@@ -47,16 +37,19 @@ public class User{
     }
 
     @Builder
-    public User(String username,String password,String name,String department, String student_id,int grade,String phoneNumber,LocalDate registrationDate)
-    {
+    public User(String username, String password, String name, String department, String student_id, int grade, String phoneNumber, LocalDate registrationDate) {
         this.username = username;
         this.password = password;
-        this.name=name;
+        this.name = name;
         this.department = department;
         this.student_id = student_id;
         this.grade = grade;
         this.phoneNumber = phoneNumber;
-        this.registrationDate=registrationDate;
+        this.registrationDate = registrationDate;
 
+    }
+
+    public void issuePassword(String password) {
+        this.password = password;
     }
 }

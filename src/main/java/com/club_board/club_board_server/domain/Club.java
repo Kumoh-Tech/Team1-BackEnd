@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 @Entity
 public class Club {
+
     @Id @GeneratedValue
     @Column(name="club_id")
     private Long id;
@@ -19,6 +20,6 @@ public class Club {
 
 
 
-    // helper method to add accession
+
 
 }
