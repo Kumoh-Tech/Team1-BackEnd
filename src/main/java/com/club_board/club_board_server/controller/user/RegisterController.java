@@ -28,6 +28,8 @@ public class RegisterController {
     @PostMapping("/mail")
     public ResponseEntity<ResponseBody<String>> mailSend(@RequestBody MailRequest mailRequest){
         String mail=mailRequest.getUsername();
+        //TODO: 추후 임시 비밀번호 sendMail랑 리팩토링 필요
+        userService.isUsernameAvailable(mail);
         userService.sendMail(mail);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("이메일 전송 성공"));
     }

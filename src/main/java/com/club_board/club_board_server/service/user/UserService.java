@@ -35,7 +35,7 @@ public class UserService {
     private final Map<String, VerificationCode> emailVerificationMap=new ConcurrentHashMap<>();
     private final Set<String> verifiedEmails=ConcurrentHashMap.newKeySet();
 
-    public User register(UserRegisterRequest userRegisterRequest)
+    public void register(UserRegisterRequest userRegisterRequest)
     {
         if(!isEmailVerified(userRegisterRequest.getUsername())){  // 이메일 인증을 완료했는가
             throw new BusinessException(ExceptionType.EMAIL_NOT_VERIFIED);
@@ -54,7 +54,7 @@ public class UserService {
                     .build();
             user.addAccession(new Accession());
             verifiedEmails.remove(userRegisterRequest.getUsername());
-            return userRepository.save(user);
+            userRepository.save(user);
         }
         catch (Exception e)
         {
@@ -64,7 +64,6 @@ public class UserService {
     }
     @Async
     public void sendMail(String username) {
-        isUsernameAvailable(username);
         if(username==null || !isValidEmail(username))
         {
             throw new BusinessException(ExceptionType.INVALID_EMAIL_FORMAT);
