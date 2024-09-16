@@ -40,11 +40,6 @@ public class UserService {
         if(!isEmailVerified(userRegisterRequest.getUsername())){  // 이메일 인증을 완료했는가
             throw new BusinessException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
-        if(!isPasswordMatched(userRegisterRequest.getPassword(),userRegisterRequest.getConfirmPassword()))  // 비밀번호와 비밀번호 확인이 일치하는가
-        {
-            log.info("패스워드 일치하지 않음");
-            throw new BusinessException(ExceptionType.NOT_CORRECT_PASSWORD);
-        }
         try{
             String encodedPassword=passwordEncoder.encode(userRegisterRequest.getPassword());
             User user=User.builder()
@@ -58,6 +53,7 @@ public class UserService {
                     .registrationDate(LocalDate.now())
                     .build();
             user.addAccession(new Accession());
+            verifiedEmails.remove(userRegisterRequest.getUsername());
             return userRepository.save(user);
         }
         catch (Exception e)
@@ -66,8 +62,6 @@ public class UserService {
         }
 
     }
-
-
     @Async
     public void sendMail(String username) {
         isUsernameAvailable(username);
@@ -145,12 +139,4 @@ public class UserService {
         if(userRepository.findByUsername(username).isPresent())
             throw new BusinessException(ExceptionType.USER_ALREADY_EXIST);
     }
-
-    public Boolean isPasswordMatched(String password,String confirmPassword)
-    {
-        log.info("패스워드 일치하는지 확인");
-        log.info("값:{}",password.equals(confirmPassword));
-        return password.equals(confirmPassword);
-    }
-
 }

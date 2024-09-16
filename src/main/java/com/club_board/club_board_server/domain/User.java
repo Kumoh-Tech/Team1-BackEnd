@@ -37,15 +37,15 @@ public class User {
     }
 
     @Builder
-    public User(String username, String password, String name, String department, String student_id,int grade,String phoneNumber,LocalDate registrationDate) {
+    public User(String username, String password, String name, String department, String student_id, int grade, String phoneNumber, LocalDate registrationDate) {
         this.username = username;
         this.password = password;
-        this.name=name;
+        this.name = name;
         this.department = department;
         this.student_id = student_id;
         this.grade = grade;
         this.phoneNumber = phoneNumber;
-        this.registrationDate=registrationDate;
+        this.registrationDate = registrationDate;
 
     }
 
