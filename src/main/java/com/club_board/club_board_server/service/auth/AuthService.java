@@ -53,8 +53,8 @@ public class AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             CustomUserDetails userDetails=(CustomUserDetails) authentication.getPrincipal();
             User user=userDetails.getUser();
-            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(2));
-            String refreshToken=tokenProvider.generateRefreshToken(user, Duration.ofHours(2));
+            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
+            String refreshToken=tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
             int statusCode = HttpStatus.OK.value(); // HTTP 상태 코드 200
             String message = "로그인 성공";
             return new UserLoginResponse(statusCode,message,accessToken, refreshToken);
