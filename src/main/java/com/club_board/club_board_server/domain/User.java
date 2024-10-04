@@ -17,7 +17,8 @@ public class User {
     private Long id;
     private String username;
     private String password;
-    private String department;
+    @Enumerated(EnumType.STRING)
+    private Department department;
     private String student_id;
     private int grade;
     private String name;
@@ -37,7 +38,7 @@ public class User {
     }
 
     @Builder
-    public User(String username, String password, String name, String department, String student_id, int grade, String phoneNumber, LocalDate registrationDate) {
+    public User(String username, String password, String name, Department department, String student_id, int grade, String phoneNumber, LocalDate registrationDate) {
         this.username = username;
         this.password = password;
         this.name = name;
