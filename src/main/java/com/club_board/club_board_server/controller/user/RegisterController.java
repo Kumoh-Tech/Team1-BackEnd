@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,6 +21,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/register")
 public class RegisterController {
     private final UserService userService;
+
+    @GetMapping()
+    public ResponseEntity<ResponseBody<List<String>>> showRegisterForm(){
+        List<String> department=userService.showRegisterForm();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseUtil.createSuccessResponse(department));
+    }
     @PostMapping()
     public ResponseEntity<ResponseBody<String>> register(@Valid @RequestBody UserRegisterRequest userRegisterRequest){
         userService.register(userRegisterRequest);

@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.service.user;
 import com.club_board.club_board_server.domain.Accession;
+import com.club_board.club_board_server.domain.Department;
 import com.club_board.club_board_server.domain.User;
 import com.club_board.club_board_server.domain.VerificationCode;
 import com.club_board.club_board_server.dto.mail.MailVerifyRequest;
@@ -18,9 +19,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,6 +39,11 @@ public class UserService {
     private final Map<String, VerificationCode> emailVerificationMap=new ConcurrentHashMap<>();
     private final Set<String> verifiedEmails=ConcurrentHashMap.newKeySet();
 
+    public List<String> showRegisterForm(){
+        return Arrays.stream(Department.values())
+                .map(Department::getDisplayName)
+                .toList();
+    }
     public void register(UserRegisterRequest userRegisterRequest)
     {
         if(!isEmailVerified(userRegisterRequest.getUsername())){  // 이메일 인증을 완료했는가
@@ -46,7 +55,7 @@ public class UserService {
                     .username(userRegisterRequest.getUsername())
                     .password(encodedPassword)
                     .name(userRegisterRequest.getName())
-                    .department(userRegisterRequest.getDepartment())
+                    .department(Department.valueOf(userRegisterRequest.getDepartment()))
                     .student_id(userRegisterRequest.getStudent_id())
                     .grade(userRegisterRequest.getGrade())
                     .phoneNumber(userRegisterRequest.getPhone_number())
