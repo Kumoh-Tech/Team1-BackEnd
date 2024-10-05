@@ -42,7 +42,7 @@ public class UserService {
     public List<String> showRegisterForm(){
         return Arrays.stream(Department.values())
                 .map(Department::getDisplayName)
-                .collect(Collectors.toList());
+                .toList();
     }
     public void register(UserRegisterRequest userRegisterRequest)
     {
