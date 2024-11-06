@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-
 @Slf4j
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
@@ -27,7 +26,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = getAccessToken(request);
         if (accessToken != null) {
             boolean isAccessTokenExpired = tokenProvider.validToken(accessToken);
-            if (!isAccessTokenExpired) {
+            if (isAccessTokenExpired) {
                 authenticateWithToken(accessToken);
             }else{
                 throw new BusinessException(ExceptionType.INVALID_ACCESS_TOKEN);
@@ -40,16 +39,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String username = tokenProvider.getClaims(token).getSubject();
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String getAccessToken(HttpServletRequest request) {
         String bearerToken=request.getHeader("authorization");
-        log.info("AT={}",bearerToken);
         if (bearerToken != null && bearerToken.startsWith(TOKEN_PREFIX)) {
             return bearerToken.substring(TOKEN_PREFIX.length());
         }
         return null;
     }
 }
+
+

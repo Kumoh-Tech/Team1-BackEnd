@@ -75,6 +75,7 @@ public class TokenProvider {
             Jwts.parser()
                     .setSigningKey(jwtProperties.getSecretKey())
                     .parseClaimsJws(token);
+
             return true;
         }
         catch(Exception e){
@@ -82,35 +83,36 @@ public class TokenProvider {
         }
     }
 
-//    public Authentication getAuthentication(String token){
-//        Claims claims =getClaims(token);
-//        Map<String, String> clubRoles = claims.get("role", Map.class);
-//        Set<SimpleGrantedAuthority> authorities = clubRoles.values().stream()
-//                .map(SimpleGrantedAuthority::new)
-//                .collect(Collectors.toSet());
-//        return new UsernamePasswordAuthenticationToken(
-//                new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities),
-//                token,
-//                authorities
-//        );
-//    }
+    public Authentication getAuthentication(String token){
+        Claims claims =getClaims(token);
+        Map<String, String> clubRoles = claims.get("role", Map.class);
+        Set<SimpleGrantedAuthority> authorities = clubRoles.values().stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+        return new UsernamePasswordAuthenticationToken(
+                new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities),
+                token,
+                authorities
+        );
+    }
 
-//    public boolean hasClubRole(Long clubId, String requiredRole) {
-//        log.info("역할 확인");
-//        // 현재 SecurityContext에 저장된 Authentication 객체를 가져옴
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String token = (String) authentication.getCredentials();  // JWT 토큰 추출
-//
-//        Claims claims = getClaims(token);  // JWT에서 클레임 추출
-//        Map<String, String> clubRoles = claims.get("role", Map.class);  // 클레임에서 roles 정보 추출
-//
-//        // 해당 clubId에 대한 역할을 확인하고, requiredRole과 비교
-//        return requiredRole.equals(clubRoles.get(String.valueOf(clubId)));
-//    }
+    public boolean hasClubRole(String clubId, String requiredRole) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = (String) authentication.getCredentials();
+        Claims claims = getClaims(token);
+        Map<String, String> clubRoles = (Map<String,String>)claims.get("role", Map.class);  // 클레임에서 roles 정보 추출
+        return requiredRole.equals(clubRoles.get(String.valueOf(clubId)));
+    }
+
+    public boolean getUserIdFromToken(String token,Long userId) {
+        Long tokenId = getClaims(token).get("id",Long.class);
+        return tokenId.equals(userId);
+    }
 
     public Claims getClaims(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(jwtProperties.getSecretKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
