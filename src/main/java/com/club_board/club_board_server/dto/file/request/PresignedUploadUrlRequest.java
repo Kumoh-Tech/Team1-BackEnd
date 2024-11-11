@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
 public class PresignedUploadUrlRequest {
     @NotBlank
     private String fileName;

@@ -2,7 +2,9 @@ package com.club_board.club_board_server.domain.file;
 
 import com.club_board.club_board_server.domain.post.Post;
 import jakarta.persistence.*;
+import lombok.Getter;
 
+@Getter
 @Entity
 public class File {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,6 +1,7 @@
 package com.club_board.club_board_server.service.file;
 
 
+import com.club_board.club_board_server.domain.file.File;
 import com.club_board.club_board_server.dto.file.request.PresignedUploadUrlRequest;
 import com.club_board.club_board_server.dto.file.response.PresignedDownloadUrlResponse;
 import com.club_board.club_board_server.dto.file.response.PresignedUploadUrlResponse;
@@ -52,12 +53,13 @@ public class S3Service {
 
         PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putObjectPresignRequest);
 
-        fileService.saveFileName(objectName);
+        File savedFile = fileService.saveFileName(objectName);
 
         s3Presigner.close();
 
         return PresignedUploadUrlResponse.builder()
                 .url(presignedPutObjectRequest.url().toString())
+                .fileId(savedFile.getId())
                 .build();
     }
 

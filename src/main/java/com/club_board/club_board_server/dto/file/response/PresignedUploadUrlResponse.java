@@ -14,5 +14,7 @@ public class PresignedUploadUrlResponse {
     @Builder.Default
     private String method = "PUT";
 
+    private Long fileId;
+
     private Map<String, String> headers;
 }
