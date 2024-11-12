@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TemporaryEmailService {
     private final JavaMailSender javaMailSender;
-    private static final String senderEmail= "cowngur5460@gmail.com";
+    @Value("${email.sender}")
+    private String senderEmail;
     @Async
     public void sendPasswordMail(String username, String password) {
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -33,3 +35,7 @@ public class TemporaryEmailService {
         }
     }
 }
+
+
+
+
