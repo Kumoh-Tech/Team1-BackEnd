@@ -1,17 +1,19 @@
 package com.club_board.club_board_server.dto.auth;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
 public class UserLoginResponse {
 
+    @NotBlank
     private String message;
-    private String accessToken;
-    private String refreshToken;
 
-    public UserLoginResponse(String message ,String accessToken, String refreshToken) {
+    @NotBlank
+    private String accessToken;
+
+    public UserLoginResponse(String message ,String accessToken) {
         this.message = message;
         this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
     }
 }

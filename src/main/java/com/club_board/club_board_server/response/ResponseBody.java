@@ -1,10 +1,8 @@
 package com.club_board.club_board_server.response;
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
-
 @Setter
 @Getter
 @JsonTypeInfo( // 다형성 처리, 어떤 하위 클래스로 역직렬화 할지

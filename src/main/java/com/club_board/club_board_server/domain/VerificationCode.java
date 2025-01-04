@@ -1,7 +1,5 @@
 package com.club_board.club_board_server.domain;
-
 import java.time.LocalDateTime;
-
 public class VerificationCode {
 
     private int code;

@@ -26,8 +26,6 @@ public class MyPageService {
     @Transactional
     public void updateMyPage(Long userId, UpdateMyPageRequest updateMyPageRequest){
         User user=userRepository.findById(userId);
-        log.info("user={}",user);
-        log.info("updateMyPageRequest={}",updateMyPageRequest.getName());
         user.updateUserInfo(
                 updateMyPageRequest.getName(),
                 updateMyPageRequest.getDepartment(),
