@@ -10,6 +10,8 @@ import com.club_board.club_board_server.repository.RefreshTokenRepository;
 import com.club_board.club_board_server.repository.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +47,7 @@ public class AuthService {
     로그인 메소드
      */
     @Transactional
-    public UserLoginResponse login(UserLoginRequest userLoginRequest)
+    public UserLoginResponse login(UserLoginRequest userLoginRequest, HttpServletResponse response)
     {
         try{
             Authentication authentication=authenticationManager.authenticate(
@@ -59,18 +61,18 @@ public class AuthService {
             User user=userDetails.getUser();
             String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
             String refreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-            RefreshToken refreshTokenEntity = refreshTokenRepository.findById(user.getId())
+            RefreshToken refreshTokenEntity = refreshTokenRepository.findByUserId(user.getId())
                     .map(existingToken -> {
-                        existingToken.update(refreshToken); // 기존 토큰을 업데이트
+                        existingToken.update(refreshToken); // 기존 토큰 업데이트
                         return existingToken;
                     })
-                    .orElseGet(() -> {
-                        // 값이 없을 경우 새로운 RefreshToken 생성
-                        return new RefreshToken(user.getId(), refreshToken);
-                    });
+                    .orElseGet(() -> new RefreshToken(user.getId(), refreshToken)); // 없으면 새로 생성
+
             refreshTokenRepository.save(refreshTokenEntity);
+            Cookie cookie=setCookie(refreshToken);
+            response.addCookie(cookie);
             String message = "로그인 성공";
-            return new UserLoginResponse(message,accessToken, refreshToken);
+            return new UserLoginResponse(message,accessToken);
         }
         catch (Exception e)
         {
@@ -128,6 +130,7 @@ public class AuthService {
     /*
     Refresh-Token 검증
      */
+    //TODO: AT를 재발급하고 다시 DB에 저장하는 로직이 필요함
     public String isValidRefreshToken(String refreshToken){
         try{
             refreshTokenRepository.findByRefreshToken(refreshToken).orElseThrow(
@@ -140,6 +143,17 @@ public class AuthService {
         {
             throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
         }
+    }
+
+    public Cookie setCookie(String refreshToken){
+        String cookieName="refresh-token";
+        String cookieValue=refreshToken;
+        Cookie cookie=new Cookie(cookieName,cookieValue);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60*60*24);
+        return cookie;
     }
 
     private static String shuffleString(String input){
