@@ -63,7 +63,7 @@ public class UserService {
                     .grade(userRegisterRequest.getGrade())
                     .phoneNumber(userRegisterRequest.getPhone_number())
                     .registrationDate(LocalDate.now())
-                    .role(Role.ROLE_USER)
+                    .role(Role.USER)
                     .build();
             verifiedEmails.remove(userRegisterRequest.getUsername());
             userRepository.save(user);
