@@ -1,17 +1,20 @@
 package com.club_board.club_board_server.service.auth;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.domain.CustomUserDetails;
+import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.User;
 import com.club_board.club_board_server.dto.auth.ResetPasswordRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginResponse;
+import com.club_board.club_board_server.repository.RefreshTokenRepository;
 import com.club_board.club_board_server.repository.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,17 +34,20 @@ public class AuthService {
     private static final String LOWER_CASE="abcdefghijklmnopqrstuvwxyz";
     private static final String DIGITS="0123456789";
     private static final String SPECIAL_CHARACTERS="@!#$%^&*()_+";
-    private final PleaseSuccess pleaseSuccess;
+    private final TemporaryEmailService temporaryEmailService;
     private static final String ALL_CHARACTERS=UPPER_CASE + LOWER_CASE +DIGITS+SPECIAL_CHARACTERS;
     private static final int MIN_PASSWORD_LENGTH=10;
     private static final int MAX_PASSWORD_LENGTH=20;
     private static final SecureRandom RANDOM=new SecureRandom();
     private final PasswordEncoder passwordEncoder;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     /*
     로그인 메소드
      */
-    public UserLoginResponse login(UserLoginRequest userLoginRequest)
+    @Transactional
+    public UserLoginResponse login(UserLoginRequest userLoginRequest, HttpServletResponse response)
     {
         try{
             Authentication authentication=authenticationManager.authenticate(
@@ -54,10 +60,19 @@ public class AuthService {
             CustomUserDetails userDetails=(CustomUserDetails) authentication.getPrincipal();
             User user=userDetails.getUser();
             String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
-            String refreshToken=tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-            int statusCode = HttpStatus.OK.value(); // HTTP 상태 코드 200
+            String refreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
+            RefreshToken refreshTokenEntity = refreshTokenRepository.findByUserId(user.getId())
+                    .map(existingToken -> {
+                        existingToken.update(refreshToken); // 기존 토큰 업데이트
+                        return existingToken;
+                    })
+                    .orElseGet(() -> new RefreshToken(user.getId(), refreshToken)); // 없으면 새로 생성
+
+            refreshTokenRepository.save(refreshTokenEntity);
+            Cookie cookie=setCookie(refreshToken);
+            response.addCookie(cookie);
             String message = "로그인 성공";
-            return new UserLoginResponse(statusCode,message,accessToken, refreshToken);
+            return new UserLoginResponse(message,accessToken);
         }
         catch (Exception e)
         {
@@ -80,15 +95,13 @@ public class AuthService {
         if(userObj.getUsername().equals(username) && userObj.getName().equals(name) && userObj.getStudent_id().equals(studentId))
         {
             String newPassword=generateTemporaryPassword();
-            pleaseSuccess.sendPasswordMail(username, newPassword);
-            log.info("new password={}",newPassword);
+            temporaryEmailService.sendPasswordMail(username, newPassword);
             String encodedPassword=passwordEncoder.encode(newPassword);
             userObj.issuePassword(encodedPassword);
             userRepository.save(userObj);
         }
         else
         {
-            log.info("불일치");
             throw new BusinessException(ExceptionType.FIND_PASSWORD_ERROR);
         }
     }
@@ -100,17 +113,12 @@ public class AuthService {
         try{
             int passwordLength=RANDOM.nextInt(MAX_PASSWORD_LENGTH-MIN_PASSWORD_LENGTH+1)+MIN_PASSWORD_LENGTH;
             StringBuilder password=new StringBuilder(passwordLength);
-
-            try {
-                password.append(UPPER_CASE.charAt(RANDOM.nextInt(UPPER_CASE.length())));
-                password.append(LOWER_CASE.charAt(RANDOM.nextInt(LOWER_CASE.length())));
-                password.append(DIGITS.charAt(RANDOM.nextInt(DIGITS.length())));
-                password.append(SPECIAL_CHARACTERS.charAt(RANDOM.nextInt(SPECIAL_CHARACTERS.length())));
-                for(int i=4;i<passwordLength;i++){
-                    password.append(ALL_CHARACTERS.charAt(RANDOM.nextInt(ALL_CHARACTERS.length())));
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            password.append(UPPER_CASE.charAt(RANDOM.nextInt(UPPER_CASE.length())));
+            password.append(LOWER_CASE.charAt(RANDOM.nextInt(LOWER_CASE.length())));
+            password.append(DIGITS.charAt(RANDOM.nextInt(DIGITS.length())));
+            password.append(SPECIAL_CHARACTERS.charAt(RANDOM.nextInt(SPECIAL_CHARACTERS.length())));
+            for(int i=4;i<passwordLength;i++){
+                password.append(ALL_CHARACTERS.charAt(RANDOM.nextInt(ALL_CHARACTERS.length())));
             }
             return shuffleString(password.toString());
         }
@@ -118,6 +126,34 @@ public class AuthService {
         {
             throw new BusinessException(ExceptionType.TEMPORARY_PASSWORD_ERROR);
         }
+    }
+    /*
+    Refresh-Token 검증
+     */
+    //TODO: AT를 재발급하고 다시 DB에 저장하는 로직이 필요함
+    public String isValidRefreshToken(String refreshToken){
+        try{
+            refreshTokenRepository.findByRefreshToken(refreshToken).orElseThrow(
+                    ()->new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
+            String username=tokenProvider.getClaims(refreshToken).getSubject();
+            CustomUserDetails userDetails=(CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
+            return tokenProvider.generateAccessToken(userDetails.getUser(),Duration.ofHours(1));
+        }
+        catch (Exception e)
+        {
+            throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+        }
+    }
+
+    public Cookie setCookie(String refreshToken){
+        String cookieName="refresh-token";
+        String cookieValue=refreshToken;
+        Cookie cookie=new Cookie(cookieName,cookieValue);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60*60*24);
+        return cookie;
     }
 
     private static String shuffleString(String input){
