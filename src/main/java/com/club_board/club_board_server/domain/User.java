@@ -41,6 +41,7 @@ public class User {
 
     private boolean isOverdue;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
 
