@@ -1,10 +1,8 @@
 package com.club_board.club_board_server.domain;
-
 import jakarta.persistence.*;
 
-
-
 @Entity
+
 public class Club {
 
     @Id @GeneratedValue
@@ -13,13 +11,4 @@ public class Club {
 
     @Column(name="club_name")
     private String name;
-
-    @ManyToOne
-    @JoinColumn(name="category_id")
-    private ClubCategory clubCategory;
-
-
-
-
-
 }
