@@ -31,3 +31,6 @@ public class MyPageController {
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("유저 정보 업데이트 성공"));
     }
 }
+
+
+

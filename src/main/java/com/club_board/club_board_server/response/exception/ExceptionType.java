@@ -1,10 +1,7 @@
 package com.club_board.club_board_server.response.exception;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-
-
 import static org.springframework.http.HttpStatus.*;
 
 @Getter
@@ -25,13 +22,14 @@ public enum ExceptionType {
     INVALID_EMAIL_CODE(UNAUTHORIZED,"U006","인증번호가 일치하지 않습니다."),
     EXPIRED_EMAIL_CODE(BAD_REQUEST,"U007","만료된 인증번호입니다."),
     EMAIL_NOT_VERIFIED(UNAUTHORIZED,"U008","이메일 인증이 완료되지 않았습니다."),
+    INVALID_DEPARTMENT(BAD_REQUEST,"U009","해당하는 학과가 존재하지 않습니다."),
 
     //Auth
     INVALID_LOGIN(HttpStatus.UNAUTHORIZED,"A001","아이디 또는 비밀번호가 일치하지 않습니다."),
     GENERATE_TOKEN_ERROR(INTERNAL_SERVER_ERROR,"A002","토큰 생성 과정 중 오류가 발생했습니다."),
     FIND_PASSWORD_ERROR(BAD_REQUEST,"A003","웹메일 또는 아이디, 비밀번호가 일치하지 않습니다."),
     TEMPORARY_PASSWORD_ERROR(INTERNAL_SERVER_ERROR,"A004","임시 비밀번호 생성 오류"),
-    INVALID_ACCESS_TOKEN(UNAUTHORIZED,"A005","Access Token 만료"),
+    INVALID_ACCESS_TOKEN(UNAUTHORIZED,"A005","Access Token 이 유효하지 않습니다."),
     NOT_FOUND_ACCESS_TOKEN(UNAUTHORIZED,"A006","Access Token 이 존재하지 않습니다."),
     INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A007","Refresh Token 만료"),
     ;

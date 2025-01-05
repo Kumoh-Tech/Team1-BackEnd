@@ -1,5 +1,4 @@
 package com.club_board.club_board_server.config.security;
-
 import com.club_board.club_board_server.config.jwt.TokenAuthenticationFilter;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
@@ -24,12 +23,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @Slf4j
-public class WebSecurityConfig {
+public class WebSecurityConfig{
     private final TokenProvider tokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private static final String[] AUTH_WHITELIST = {
             "/register/**","login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**"
     };
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         TokenAuthenticationFilter tokenAuthenticationFilter = new TokenAuthenticationFilter(tokenProvider, customUserDetailsService);

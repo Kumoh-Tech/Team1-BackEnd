@@ -1,5 +1,10 @@
 package com.club_board.club_board_server.domain;
 
+import com.club_board.club_board_server.response.exception.BusinessException;
+import com.club_board.club_board_server.response.exception.ExceptionType;
+
+import java.util.Arrays;
+
 public enum Department {
     COMPUTER_ENGINEERING("컴퓨터공학과"),
     SOFTWARE_ENGINEERING("컴퓨터소프트웨어공학과"),
@@ -30,5 +35,12 @@ public enum Department {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public static Department fromDisplayName(String displayName) {
+        return Arrays.stream(Department.values())
+                .filter(department -> department.getDisplayName().equals(displayName))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_DEPARTMENT));
     }
 }

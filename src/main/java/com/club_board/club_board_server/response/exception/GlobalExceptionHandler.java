@@ -1,6 +1,4 @@
 package com.club_board.club_board_server.response.exception;
-
-
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 @RequiredArgsConstructor
 @Slf4j
 @RestControllerAdvice
