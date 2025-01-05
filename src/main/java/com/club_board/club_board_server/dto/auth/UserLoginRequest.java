@@ -1,15 +1,13 @@
-package com.club_board.club_board_server.dto.mail;
-
+package com.club_board.club_board_server.dto.auth;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
-public class MailVerifyRequest {
+public class UserLoginRequest {
 
     @NotBlank
     private String username;
 
     @NotBlank
-    private int mailCode;
-
+    private String password;
 }

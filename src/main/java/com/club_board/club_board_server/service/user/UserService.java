@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.service.user;
-import com.club_board.club_board_server.domain.Accession;
+import com.club_board.club_board_server.domain.Department;
+import com.club_board.club_board_server.domain.Role;
 import com.club_board.club_board_server.domain.User;
 import com.club_board.club_board_server.domain.VerificationCode;
 import com.club_board.club_board_server.dto.mail.MailVerifyRequest;
@@ -18,22 +19,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserService {
     @Value("${email.sender}")
     private String senderEmail;
+
+    @Value("${verification.code.expiry-minutes}")
+    private int verificationCodeExpiryMinutes;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender javaMailSender;
     private static final String ALLOWED_DOMAIN="kumoh.ac.kr";
     private final Map<String, VerificationCode> emailVerificationMap=new ConcurrentHashMap<>();
     private final Set<String> verifiedEmails=ConcurrentHashMap.newKeySet();
+
+    public List<String> showRegisterForm(){
+        return Arrays.stream(Department.values())
+                .map(Department::getDisplayName)
+                .toList();
+    }
 
     public void register(UserRegisterRequest userRegisterRequest)
     {
@@ -42,17 +53,18 @@ public class UserService {
         }
         try{
             String encodedPassword=passwordEncoder.encode(userRegisterRequest.getPassword());
+            Department departmentEnum = Department.fromDisplayName(userRegisterRequest.getDepartment());
             User user=User.builder()
                     .username(userRegisterRequest.getUsername())
                     .password(encodedPassword)
                     .name(userRegisterRequest.getName())
-                    .department(userRegisterRequest.getDepartment())
+                    .department(departmentEnum.getDisplayName())
                     .student_id(userRegisterRequest.getStudent_id())
                     .grade(userRegisterRequest.getGrade())
                     .phoneNumber(userRegisterRequest.getPhone_number())
                     .registrationDate(LocalDate.now())
+                    .role(Role.USER)
                     .build();
-            user.addAccession(new Accession());
             verifiedEmails.remove(userRegisterRequest.getUsername());
             userRepository.save(user);
         }
@@ -81,7 +93,6 @@ public class UserService {
             message.setText(body,"UTF-8", "html");
             javaMailSender.send(message);
             emailVerificationMap.put(username,new VerificationCode(number, LocalDateTime.now()));
-            log.info("메일저장소={}",emailVerificationMap);
         } catch (MessagingException e) {
             throw new BusinessException(ExceptionType.EMAIL_SEND_ERROR);
         }
@@ -90,18 +101,19 @@ public class UserService {
     public void checkVerificationNumber(MailVerifyRequest mailVerifyRequest) // 이메일 코드 일치 검증
     {
         String mail=mailVerifyRequest.getUsername();
-        log.info("이메일 코드 일치 검증 시작");
         VerificationCode verificationCode=emailVerificationMap.get(mail);
-        if(verificationCode==null ||!isValidCode(verificationCode,mailVerifyRequest)){
-            throw new BusinessException(ExceptionType.INVALID_EMAIL_CODE);
-        }
-        if(isExpired(verificationCode))
-        {
+
+        synchronized (emailVerificationMap) {  // 동시성 문제 방지를 위해 동기화 블록 사용
+            if (verificationCode == null || !isValidCode(verificationCode, mailVerifyRequest)) {
+                throw new BusinessException(ExceptionType.INVALID_EMAIL_CODE);
+            }
+            if (isExpired(verificationCode)) {
+                emailVerificationMap.remove(mail);
+                throw new BusinessException(ExceptionType.EXPIRED_EMAIL_CODE);
+            }
             emailVerificationMap.remove(mail);
-            throw new BusinessException(ExceptionType.EXPIRED_EMAIL_CODE);
+            verifiedEmails.add(mail);
         }
-        emailVerificationMap.remove(mail);
-        verifiedEmails.add(mail);
     }
 
     private int createNumber() { // 메일 코드 생성
@@ -116,15 +128,12 @@ public class UserService {
 
     
     public boolean isExpired(VerificationCode verificationCode) { //코드 만료 체크
-        log.info("코드 만료 체크 시작");
-
-        return verificationCode.getTimestamp().plusMinutes(5).isBefore(LocalDateTime.now());
+        return verificationCode.getTimestamp().plusMinutes(verificationCodeExpiryMinutes).isBefore(LocalDateTime.now());
 
     }
 
     public boolean isValidCode(VerificationCode verificationCode,MailVerifyRequest mailVerifyRequest) //코드 일치 체크
     {
-        log.info("코드 유효검사 시작");
         return verificationCode.getCode()==mailVerifyRequest.getMailCode();
     }
 
@@ -133,7 +142,7 @@ public class UserService {
         return verifiedEmails.contains(email);
     }
 
-    public void isUsernameAvailable(String username)
+    public void checkUsernameAvailable(String username)
     {
         if(userRepository.findByUsername(username).isPresent())
             throw new BusinessException(ExceptionType.USER_ALREADY_EXIST);

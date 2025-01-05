@@ -1,7 +1,5 @@
 package com.club_board.club_board_server.response;
-
 import com.club_board.club_board_server.response.exception.ExceptionType;
-
 public class ResponseUtil {
 
     public static ResponseBody<Void> createSuccessResponse() {
