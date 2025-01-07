@@ -2,10 +2,12 @@ package com.club_board.club_board_server.domain.book;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Entity
+@NoArgsConstructor
 public class BookImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
