@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.repository;
+package com.club_board.club_board_server.repository.refreshToken;
 import com.club_board.club_board_server.domain.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;

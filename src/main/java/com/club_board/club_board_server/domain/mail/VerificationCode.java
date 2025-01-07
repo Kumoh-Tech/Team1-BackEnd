@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.domain;
+package com.club_board.club_board_server.domain.mail;
 import java.time.LocalDateTime;
 public class VerificationCode {
 

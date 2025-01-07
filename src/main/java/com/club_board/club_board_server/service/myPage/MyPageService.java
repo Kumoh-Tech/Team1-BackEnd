@@ -1,8 +1,8 @@
 package com.club_board.club_board_server.service.myPage;
-import com.club_board.club_board_server.domain.User;
+import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.myPage.MyPageResponse;
 import com.club_board.club_board_server.dto.myPage.UpdateMyPageRequest;
-import com.club_board.club_board_server.repository.UserRepository;
+import com.club_board.club_board_server.repository.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
