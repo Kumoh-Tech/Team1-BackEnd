@@ -1,13 +1,13 @@
 package com.club_board.club_board_server.service.auth;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
-import com.club_board.club_board_server.domain.CustomUserDetails;
+import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.domain.RefreshToken;
-import com.club_board.club_board_server.domain.User;
+import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.auth.ResetPasswordRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginResponse;
-import com.club_board.club_board_server.repository.RefreshTokenRepository;
-import com.club_board.club_board_server.repository.UserRepository;
+import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepository;
+import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import jakarta.servlet.http.Cookie;

@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.domain;
+package com.club_board.club_board_server.domain.user;
 
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;

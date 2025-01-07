@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.domain;
+package com.club_board.club_board_server.domain.user;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

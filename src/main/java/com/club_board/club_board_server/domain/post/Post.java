@@ -1,7 +1,7 @@
 package com.club_board.club_board_server.domain.post;
 
 import com.club_board.club_board_server.domain.AuditEntity;
-import com.club_board.club_board_server.domain.User;
+import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.domain.file.File;
 import jakarta.persistence.*;
 
