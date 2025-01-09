@@ -30,6 +30,9 @@ public class Book {
     @Enumerated(EnumType.STRING)
     private BookStatus status;
 
+    @Column(name="reservationCount",nullable = false)
+    private int reservationCount=0;
+
     @Builder
     public Book(String title, String author, String publisher, int publishYear) {
         this.title = title;
