@@ -1,10 +1,14 @@
 package com.club_board.club_board_server.dto.file.response;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
+@Builder
 public class PresignedDownloadUrlResponse {
     private String url;
-    private String method;
+
+    @Builder.Default
+    private String method = "GET";
 }

@@ -32,6 +32,11 @@ public enum ExceptionType {
     INVALID_ACCESS_TOKEN(UNAUTHORIZED,"A005","Access Token 이 유효하지 않습니다."),
     NOT_FOUND_ACCESS_TOKEN(UNAUTHORIZED,"A006","Access Token 이 존재하지 않습니다."),
     INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A007","Refresh Token 만료"),
+
+    // File
+    FILE_NOT_FOUND(NOT_FOUND, "F001", "파일이 존재하지 않습니다."),
+    INVALID_FILE_TYPE(BAD_REQUEST, "F002", "허용되지 않은 파일 타입입니다. (image만 가능)"),
+
     ;
 
     private final HttpStatus status;
