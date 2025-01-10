@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Entity
@@ -26,12 +27,10 @@ public class Book {
     @Column(name = "publish_year", nullable = false)
     private int publishYear;
 
+    @Setter
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private BookStatus status;
-
-    @Column(name="reservationCount",nullable = false)
-    private int reservationCount=0;
 
     @Builder
     public Book(String title, String author, String publisher, int publishYear) {
