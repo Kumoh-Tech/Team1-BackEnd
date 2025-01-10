@@ -4,7 +4,7 @@ public enum ReservationStatus {
     RESERVED("예약 중"),
     BORROWING("대출 중"),
     RETURNED("반납"),
-    OVERDUE_RETURNED("연체");
+    OVERDUE("연체");
 
     private final String description;
 

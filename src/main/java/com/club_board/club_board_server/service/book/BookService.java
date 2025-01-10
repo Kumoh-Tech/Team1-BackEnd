@@ -1,5 +1,4 @@
 package com.club_board.club_board_server.service.book;
-
 import com.club_board.club_board_server.domain.book.Book;
 import com.club_board.club_board_server.domain.book.BookStatus;
 import com.club_board.club_board_server.domain.book.Reservation;
@@ -12,14 +11,17 @@ import com.club_board.club_board_server.repository.book.ReservationRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
+import com.club_board.club_board_server.service.file.S3Service;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,10 +30,11 @@ public class BookService {
     private final BookRepository bookRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final ReservationRepository reservationRepository;
+    private final S3Service s3Service;
 
+    // 모든 책을 조회, 데이터가 많아질 시 추후 페이징 처리 필요해보임
     public List<BookResponse> getAllBooks(){
         List<Book> books=bookRepository.findAll();
-        log.info("조회 성공");
         return books.stream()
                 .map(book->BookResponse.builder()
                         .id(book.getId())
@@ -44,6 +47,7 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    // 책 상세내역 조회
     public BookResponse getBookById(Long id){
         Book book=bookRepository.findById(id)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
@@ -57,37 +61,68 @@ public class BookService {
                 .build();
     }
 
+
     public void addReservation(Long id){
 
         // 예약하고자 하는 책 찾기
         Book book=bookRepository.findById(id)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
-        // 예약 인원 가득찼는지 확인
-        if(book.getReservationCount()>=3){
+
+        // 예약 수를 동적으로 계산하여 체크
+        int currentReservationCount = reservationRepository.countActiveReservation(book.getId());
+        if (currentReservationCount >= 3 || book.getStatus()==BookStatus.FULLY_RESERVED) {
             throw new BusinessException(ExceptionType.BOOK_ALREADY_FULL);
         }
+
         // 예약하는 사람 정보 가져오기
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         String username=authentication.getName();
         User user = (User) customUserDetailsService.loadUserByUsername(username);
-        // 예약이 가능할 때
-        if(book.getStatus()!= BookStatus.FULLY_RESERVED&&!user.isOverdue()){
-            Reservation reservation=new Reservation(user,book);
-            reservationRepository.save(reservation);
+
+        // 연체자인지 확인 (연체자는 예약 불가 정책 예시)
+        if (user.isOverdue()) {
+            throw new BusinessException(ExceptionType.USER_OVERDUE);
         }
-        //TODO 예약이 3명이 되어있으면 예약 못하게 서버에서 예외처리 + 프론트에 전달해줘야함
-        // 예약을 누르려는 사람이 해당 학기에 연체 이력이 있을 경우 예약이 불가
-        // 예약시작한 시점부터 2주라는 기간이 지나서 연체가 되면, 어떻게 자동으로 연체됨이라고 하는거지?
+
+        Reservation reservation=new Reservation(user,book);
+        reservationRepository.save(reservation);
+
+        // 예약 수가 3명이 되면 책 상태를 FULLY_RESERVED로 변경
+        if (currentReservationCount + 1 >= 3) {
+            book.setStatus(BookStatus.FULLY_RESERVED);
+            bookRepository.save(book);
+        }
     }
 
-    public void removeReservation(Long id){
-        Book book=bookRepository.findById(id).orElse(null);
+    // 예약 취소
+    public void cancelReservation(Long bookId){
+        Book book=bookRepository.findById(bookId)
+                .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
+
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails=(CustomUserDetails) authentication.getPrincipal();
-        reservationRepository.deleteReservation(id,userDetails.getUser().getId())
+
+        Reservation reservation=reservationRepository.findByBookIdAndUserId(bookId,userDetails.getUser().getId())
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
+        reservationRepository.delete(reservation);
+
+        if (book.getStatus() == BookStatus.FULLY_RESERVED) {
+            book.setStatus(BookStatus.AVAILABLE); // 혹은 다른 적절한 상태
+            bookRepository.save(book);
+        }
     }
 
-
-
+    // 자정이 될 때마다 스케줄러를 통해 주기적으로 메서드 실행
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void checkUserIsOverdue(){
+        List<Reservation> overdueReservation=reservationRepository.findAllOverdueReservations(LocalDate.now());
+        if (overdueReservation.isEmpty()) {
+            return;
+        }
+        for(Reservation reservation:overdueReservation){
+            reservation.setStatus(ReservationStatus.OVERDUE);
+            reservation.getUser().setOverdue(true);
+        }
+    }
 }

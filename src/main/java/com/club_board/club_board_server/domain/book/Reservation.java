@@ -4,6 +4,7 @@ import com.club_board.club_board_server.domain.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -25,12 +26,16 @@ public class Reservation {
     private Book book;
 
     @Column(name = "reservation_date", nullable = false)
-    @CreatedDate
     private LocalDateTime reservationDate;
 
+    @Setter
     @Column(name = "status", nullable = false)
     private ReservationStatus status;
 
+    @Column(name="borrow_date")
+    private LocalDateTime borrowDate;
+
+    @Setter
     @Column(name = "return_date")
     private LocalDateTime returnDate;
 
@@ -38,5 +43,7 @@ public class Reservation {
         this.user = user;
         this.book = book;
         this.status = ReservationStatus.RESERVED;
+        this.reservationDate=LocalDateTime.now();
     }
+
 }
