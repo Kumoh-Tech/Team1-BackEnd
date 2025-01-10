@@ -30,6 +30,7 @@ public class Reservation {
 
     @Setter
     @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private ReservationStatus status;
 
     @Column(name="borrow_date")

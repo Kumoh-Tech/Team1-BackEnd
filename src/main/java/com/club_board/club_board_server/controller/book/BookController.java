@@ -16,7 +16,6 @@ public class BookController {
 
     private final BookService bookService;
 
-
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
     public ResponseEntity<ResponseBody<List<BookResponse>>> getAllBooks(){

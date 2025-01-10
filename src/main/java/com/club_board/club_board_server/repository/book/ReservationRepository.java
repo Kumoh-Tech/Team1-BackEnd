@@ -19,8 +19,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     Optional<Reservation> findByBookIdAndUserId(Long bookId, Long userId);
 
     // 마감 기한이 지난 예약 내역을 리스트로 가져오는 JPQL
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status='BORROWING' AND r.borrowDate+14 < :today")
-    List<Reservation> findAllOverdueReservations(@Param("deadLine") LocalDate today);
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status='BORROWING' AND r.borrowDate < :overdueDate")
+    List<Reservation> findAllOverdueReservations(@Param("overdueDate") LocalDate overdueDate);
 
 }
 

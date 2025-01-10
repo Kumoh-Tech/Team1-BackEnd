@@ -8,10 +8,10 @@ import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.book.BookResponse;
 import com.club_board.club_board_server.repository.book.BookRepository;
 import com.club_board.club_board_server.repository.book.ReservationRepository;
+import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
-import com.club_board.club_board_server.service.file.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,8 @@ public class BookService {
     private final BookRepository bookRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final ReservationRepository reservationRepository;
-    private final S3Service s3Service;
+    private final UserRepository userRepository;
+
 
     // 모든 책을 조회, 데이터가 많아질 시 추후 페이징 처리 필요해보임
     public List<BookResponse> getAllBooks(){
@@ -75,9 +76,11 @@ public class BookService {
         }
 
         // 예약하는 사람 정보 가져오기
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        String username=authentication.getName();
-        User user = (User) customUserDetailsService.loadUserByUsername(username);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getId();
+
+        User user=userRepository.findById(userId);
 
         // 연체자인지 확인 (연체자는 예약 불가 정책 예시)
         if (user.isOverdue()) {
@@ -99,10 +102,12 @@ public class BookService {
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
 
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails=(CustomUserDetails) authentication.getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getId();  // User ID 가져오기
 
-        Reservation reservation=reservationRepository.findByBookIdAndUserId(bookId,userDetails.getUser().getId())
+
+        Reservation reservation=reservationRepository.findByBookIdAndUserId(bookId,userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
@@ -116,7 +121,9 @@ public class BookService {
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void checkUserIsOverdue(){
-        List<Reservation> overdueReservation=reservationRepository.findAllOverdueReservations(LocalDate.now());
+        LocalDate today=LocalDate.now();
+        LocalDate overdueDate=today.minusDays(14);
+        List<Reservation> overdueReservation=reservationRepository.findAllOverdueReservations(overdueDate);
         if (overdueReservation.isEmpty()) {
             return;
         }
