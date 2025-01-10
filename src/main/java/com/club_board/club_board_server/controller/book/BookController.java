@@ -40,7 +40,7 @@ public class BookController {
     @DeleteMapping("/reservation/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
     public ResponseEntity<ResponseBody<String>> cancelReservation(@PathVariable Long id){
-        bookService.removeReservation(id);
+        bookService.cancelReservation(id);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("Reservation cancelled"));
     }
 
