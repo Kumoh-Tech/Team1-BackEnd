@@ -23,6 +23,7 @@ public enum ExceptionType {
     EXPIRED_EMAIL_CODE(BAD_REQUEST,"U007","만료된 인증번호입니다."),
     EMAIL_NOT_VERIFIED(UNAUTHORIZED,"U008","이메일 인증이 완료되지 않았습니다."),
     INVALID_DEPARTMENT(BAD_REQUEST,"U009","해당하는 학과가 존재하지 않습니다."),
+    USER_OVERDUE(UNAUTHORIZED,"U010","연체된 유저입니다."),
 
     //Auth
     INVALID_LOGIN(HttpStatus.UNAUTHORIZED,"A001","아이디 또는 비밀번호가 일치하지 않습니다."),
@@ -32,6 +33,17 @@ public enum ExceptionType {
     INVALID_ACCESS_TOKEN(UNAUTHORIZED,"A005","Access Token 이 유효하지 않습니다."),
     NOT_FOUND_ACCESS_TOKEN(UNAUTHORIZED,"A006","Access Token 이 존재하지 않습니다."),
     INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A007","Refresh Token 만료"),
+
+    // File
+    FILE_NOT_FOUND(NOT_FOUND, "F001", "파일이 존재하지 않습니다."),
+    INVALID_FILE_TYPE(BAD_REQUEST, "F002", "허용되지 않은 파일 타입입니다. (image만 가능)"),
+
+
+
+    //BOOK
+    BOOK_NOT_FOUND(NOT_FOUND,"B001","해당하는 책이 존재하지 않습니다."),
+    BOOK_ALREADY_FULL(BAD_REQUEST,"B002","이미 가득 찬 예약입니다."),
+    RESERVATION_NOT_FOUND(NOT_FOUND,"B003","해당하는 예약이 존재하지 않습니다.")
     ;
 
     private final HttpStatus status;

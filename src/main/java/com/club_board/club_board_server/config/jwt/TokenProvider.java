@@ -1,6 +1,6 @@
 package com.club_board.club_board_server.config.jwt;
-import com.club_board.club_board_server.domain.User;
-import com.club_board.club_board_server.repository.RefreshTokenRepository;
+import com.club_board.club_board_server.domain.user.User;
+import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import io.jsonwebtoken.Claims;

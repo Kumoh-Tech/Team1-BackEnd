@@ -1,11 +1,12 @@
-package com.club_board.club_board_server.domain;
+package com.club_board.club_board_server.domain.user;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+
 @NoArgsConstructor
 @Entity
 @Getter
@@ -39,6 +40,7 @@ public class User {
 
     private LocalDate lastLoginDate;
 
+    @Setter
     private boolean isOverdue;
 
     @Enumerated(EnumType.STRING)

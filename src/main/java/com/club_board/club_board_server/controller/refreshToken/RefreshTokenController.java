@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.controller.RefreshToken;
+package com.club_board.club_board_server.controller.refreshToken;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;

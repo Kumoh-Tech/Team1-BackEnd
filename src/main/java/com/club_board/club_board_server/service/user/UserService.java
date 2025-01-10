@@ -1,11 +1,11 @@
 package com.club_board.club_board_server.service.user;
-import com.club_board.club_board_server.domain.Department;
-import com.club_board.club_board_server.domain.Role;
-import com.club_board.club_board_server.domain.User;
-import com.club_board.club_board_server.domain.VerificationCode;
+import com.club_board.club_board_server.domain.user.Department;
+import com.club_board.club_board_server.domain.user.Role;
+import com.club_board.club_board_server.domain.user.User;
+import com.club_board.club_board_server.domain.mail.VerificationCode;
 import com.club_board.club_board_server.dto.mail.MailVerifyRequest;
 import com.club_board.club_board_server.dto.user.UserRegisterRequest;
-import com.club_board.club_board_server.repository.UserRepository;
+import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import jakarta.mail.MessagingException;
