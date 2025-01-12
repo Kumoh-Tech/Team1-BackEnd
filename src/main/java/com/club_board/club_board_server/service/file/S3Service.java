@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -179,6 +179,29 @@ public class S3Service {
                     .url(presignedGetObjectRequest.url().toString())
                     .build();
         }
+    }
 
+    public void deleteBookImage(BookImage bookImage) {
+        this.deleteObject(bookImage.getUrl());
+
+        bookImageService.deleteBookImage(bookImage);
+    }
+
+    private void deleteObject(String url) {
+        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+
+        try (
+                S3Client s3 = S3Client.builder()
+                        .region(Region.AP_NORTHEAST_2)
+                        .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                        .build();
+        ) {
+            DeleteObjectRequest deleteObjectsRequest = DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(url)
+                    .build();
+
+            s3.deleteObject(deleteObjectsRequest);
+        }
     }
 }

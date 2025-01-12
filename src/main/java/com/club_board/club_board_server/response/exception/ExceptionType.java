@@ -37,6 +37,9 @@ public enum ExceptionType {
     FILE_NOT_FOUND(NOT_FOUND, "F001", "파일이 존재하지 않습니다."),
     INVALID_FILE_TYPE(BAD_REQUEST, "F002", "허용되지 않은 파일 타입입니다. (image만 가능)"),
 
+    // Book
+    BOOK_NOT_FOUND(NOT_FOUND, "B001", "도서 정보가 존재하지 않습니다."),
+
     ;
 
     private final HttpStatus status;
