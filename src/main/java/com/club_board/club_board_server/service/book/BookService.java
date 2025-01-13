@@ -39,6 +39,7 @@ public class BookService {
                         .publishYear(book.getPublishYear())
                         .publisher(book.getPublisher())
                         .status(book.getStatus())
+                        .bookUrl(book.getBookImage().getUrl())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -54,6 +55,7 @@ public class BookService {
                 .publishYear(book.getPublishYear())
                 .publisher(book.getPublisher())
                 .status(book.getStatus())
+                .bookUrl(book.getBookImage().getUrl())
                 .build();
     }
 
