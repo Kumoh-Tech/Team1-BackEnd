@@ -31,7 +31,7 @@ public class BookController {
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(bookResponse));
     }
 
-    @PostMapping("/reservation/{id}")
+    @PostMapping("/reservation/{bookId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
     public ResponseEntity<ResponseBody<String>> reservation(@PathVariable Long bookId,
                                                             @AuthenticationPrincipal CustomUserDetails customUserDetails){
@@ -40,7 +40,7 @@ public class BookController {
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("Reservation success"));
     }
 
-    @DeleteMapping("/reservation/{id}")
+    @DeleteMapping("/reservation/{bookId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
     public ResponseEntity<ResponseBody<String>> cancelReservation(@PathVariable Long bookId,
                                                                   @AuthenticationPrincipal CustomUserDetails customUserDetails){
