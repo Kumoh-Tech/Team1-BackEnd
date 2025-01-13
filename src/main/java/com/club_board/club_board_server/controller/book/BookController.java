@@ -1,4 +1,5 @@
 package com.club_board.club_board_server.controller.book;
+import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.dto.book.BookResponse;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
@@ -6,6 +7,7 @@ import com.club_board.club_board_server.service.book.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -31,15 +33,19 @@ public class BookController {
 
     @PostMapping("/reservation/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<String>> reservation(@PathVariable Long id){
-        bookService.addReservation(id);
+    public ResponseEntity<ResponseBody<String>> reservation(@PathVariable Long bookId,
+                                                            @AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        bookService.addReservation(bookId,userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("Reservation success"));
     }
 
     @DeleteMapping("/reservation/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<String>> cancelReservation(@PathVariable Long id){
-        bookService.cancelReservation(id);
+    public ResponseEntity<ResponseBody<String>> cancelReservation(@PathVariable Long bookId,
+                                                                  @AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        bookService.cancelReservation(bookId,userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("Reservation cancelled"));
     }
 

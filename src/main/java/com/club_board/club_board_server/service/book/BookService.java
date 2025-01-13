@@ -63,10 +63,10 @@ public class BookService {
     }
 
 
-    public void addReservation(Long id){
+    public void addReservation(Long bookId,Long userId){
 
         // 예약하고자 하는 책 찾기
-        Book book=bookRepository.findById(id)
+        Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
 
         // 예약 수를 동적으로 계산하여 체크
@@ -74,11 +74,6 @@ public class BookService {
         if (currentReservationCount >= 3 || book.getStatus()==BookStatus.FULLY_RESERVED) {
             throw new BusinessException(ExceptionType.BOOK_ALREADY_FULL);
         }
-
-        // 예약하는 사람 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long userId = userDetails.getUser().getId();
 
         User user=userRepository.findById(userId);
 
@@ -98,21 +93,16 @@ public class BookService {
     }
 
     // 예약 취소
-    public void cancelReservation(Long bookId){
+    public void cancelReservation(Long bookId,Long userId){
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long userId = userDetails.getUser().getId();  // User ID 가져오기
-
 
         Reservation reservation=reservationRepository.findByBookIdAndUserId(bookId,userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
         if (book.getStatus() == BookStatus.FULLY_RESERVED) {
-            book.setStatus(BookStatus.AVAILABLE); // 혹은 다른 적절한 상태
+            book.setStatus(BookStatus.AVAILABLE);
             bookRepository.save(book);
         }
     }
