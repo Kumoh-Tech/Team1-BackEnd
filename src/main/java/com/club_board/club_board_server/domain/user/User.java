@@ -3,6 +3,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
 @NoArgsConstructor
@@ -38,6 +40,7 @@ public class User {
 
     private LocalDate lastLoginDate;
 
+    @Setter
     private boolean isOverdue;
 
     @Enumerated(EnumType.STRING)
