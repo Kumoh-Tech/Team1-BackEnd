@@ -77,7 +77,7 @@ jobs:
             sudo docker ps -a -q --filter "name=team1-backend-container" | grep -q . && docker rm $CONTAINER_NAME || echo "No container to remove"
 
             echo "=== Pull new image ===" >> $DEPLOY_LOG_PATH
-            sudo docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+            sudo docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}
 
             echo "=== Run new container ===" >> $DEPLOY_LOG_PATH
             sudo docker run -d \
