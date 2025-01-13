@@ -4,10 +4,14 @@ import com.club_board.club_board_server.domain.AuditEntity;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.domain.file.File;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@Getter
 @Entity
+@NoArgsConstructor
 public class Post extends AuditEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
@@ -23,6 +27,6 @@ public class Post extends AuditEntity {
     private User author;
 
     @OneToMany
-    @Column(name = "post_file_names")
+    @JoinColumn(name = "file_id")
     private List<File> fileNames;
 }
