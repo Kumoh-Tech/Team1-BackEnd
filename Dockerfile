@@ -1,5 +1,5 @@
 # Build stage
-FROM gradle:8.12.0-jdk21 AS builder   // 멀티스테이지 빌드
+FROM gradle:8.12.0-jdk21 AS builder
 WORKDIR /app  
 
 # Copy dependency definitions first 
