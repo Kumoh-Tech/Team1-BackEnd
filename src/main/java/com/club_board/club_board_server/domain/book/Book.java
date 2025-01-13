@@ -40,7 +40,7 @@ public class Book {
     private BookStatus status;
 
     @Setter
-    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
     private BookImage bookImage;
 
     @Builder
