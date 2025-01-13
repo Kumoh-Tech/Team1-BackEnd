@@ -3,7 +3,6 @@ import com.club_board.club_board_server.domain.book.Book;
 import com.club_board.club_board_server.domain.book.BookStatus;
 import com.club_board.club_board_server.domain.book.Reservation;
 import com.club_board.club_board_server.domain.book.ReservationStatus;
-import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.book.BookResponse;
 import com.club_board.club_board_server.repository.book.BookRepository;
@@ -11,13 +10,10 @@ import com.club_board.club_board_server.repository.book.ReservationRepository;
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
-import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
@@ -28,7 +24,6 @@ import java.util.stream.Collectors;
 public class BookService {
 
     private final BookRepository bookRepository;
-    private final CustomUserDetailsService customUserDetailsService;
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
 
