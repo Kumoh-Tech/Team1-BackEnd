@@ -21,7 +21,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # (3) Gradle 빌드 (테스트 포함)
+      # (3-1) application.yml 파일 생성
+      - name: Make application.yml
+        run: |
+          touch ./application.yml
+          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+
+      # (3-2) Gradle 빌드 (테스트 포함)
       - name: Build with Gradle
         run: |
           chmod +x gradlew
