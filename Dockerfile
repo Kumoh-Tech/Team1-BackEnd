@@ -14,9 +14,6 @@ COPY src ./src
 # Build the application
 RUN gradle build -x test
 
-RUN ls /app
-RUN ls /app/build/libs
-
 # Runtime stage
 FROM openjdk:21-slim
 WORKDIR /app
@@ -25,7 +22,7 @@ WORKDIR /app
 RUN addgroup --system javauser && adduser --system --group javauser
 
 # Set ownership and switch to non-root user
-COPY --from=builder --chown=javauser:javauser /app/build/libs/club-board-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder --chown=javauser:javauser /app/build/libs/club-board_server-0.0.1-SNAPSHOT.jar app.jar
 
 USER javauser
 
