@@ -14,6 +14,9 @@ COPY src ./src
 # Build the application
 RUN gradle build -x test
 
+RUN ls /app
+RUN ls /app/build/libs
+
 # Runtime stage
 FROM openjdk:21-slim
 WORKDIR /app
