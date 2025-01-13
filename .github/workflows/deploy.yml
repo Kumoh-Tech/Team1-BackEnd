@@ -1,0 +1,78 @@
+name: CI/CD to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # (1) 리포지토리 체크아웃
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      # (2) AWS 자격 증명 설정
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # (3) Gradle 빌드 (테스트 포함)
+      - name: Build with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build
+
+      # (4) ECR 로그인 (도커 로그인)
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS \
+          --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      # (5) Docker 이미지 빌드 & 태그
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_REPO_NAME }} .
+          docker tag ${{ secrets.ECR_REPO_NAME }}:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+
+      # (6) ECR에 Docker 이미지 push
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+
+      # (7) EC2 서버에 SSH 접속하여, 도커 배포 자동화
+      - name: SSH to EC2 and deploy
+        uses: appleboy/ssh-action@v0.1.11
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            echo "=== Docker login to ECR ==="
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+            echo "=== Stop old container ==="
+            # 이미 동작 중인 컨테이너가 있다면 중지 (이름은 직접 맞춰야 함. 예: team1-backend-container)
+            docker ps -q --filter "name=team1-backend-container" | grep -q . && docker stop team1-backend-container || echo "No container to stop"
+
+            echo "=== Remove old container ==="
+            # 중지된 컨테이너 삭제
+            docker ps -a -q --filter "name=team1-backend-container" | grep -q . && docker rm team1-backend-container || echo "No container to remove"
+
+            echo "=== Pull new image ==="
+            docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+
+            echo "=== Run new container ==="
+            docker run -d \
+              -p 8080:8080 \
+              --name team1-backend-container \
+              ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+
+            echo "=== Deployment completed! ==="
