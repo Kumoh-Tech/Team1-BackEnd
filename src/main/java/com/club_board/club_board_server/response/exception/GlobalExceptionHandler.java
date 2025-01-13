@@ -25,11 +25,12 @@ public class GlobalExceptionHandler {
         String customMessage=e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
         return ResponseEntity
                 .status(ExceptionType.BINDING_ERROR.getStatus())
-                .body(ResponseUtil.createFailureResponse(ExceptionType.BINDING_ERROR,customMessage));
+                .body(ResponseUtil.createFailureResponse(ExceptionType.BINDING_ERROR, customMessage));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseBody<Void>> exception(Exception e){
+        e.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseUtil.createFailureResponse(ExceptionType.UNEXPECTED_SERVER_ERROR));

@@ -15,15 +15,19 @@ public class Book {
     @Column(name = "book_id")
     private Long id;
 
+    @Setter
     @Column(name = "title", nullable = false)
     private String title;
 
+    @Setter
     @Column(name = "author", nullable = false)
     private String author;
 
+    @Setter
     @Column(name = "publisher", nullable = false)
     private String publisher;
 
+    @Setter
     @Column(name = "publish_year", nullable = false)
     private int publishYear;
 
