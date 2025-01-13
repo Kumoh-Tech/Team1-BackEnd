@@ -10,6 +10,7 @@ import com.club_board.club_board_server.repository.book.ReservationRepository;
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
+import com.club_board.club_board_server.service.file.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,21 +27,29 @@ public class BookService {
     private final BookRepository bookRepository;
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service;
 
 
     // 모든 책을 조회, 데이터가 많아질 시 추후 페이징 처리 필요해보임
     public List<BookResponse> getAllBooks(){
         List<Book> books=bookRepository.findAll();
         return books.stream()
-                .map(book->BookResponse.builder()
+                .map(book->{
+                            String bookUrl=null;
+                            if(book.getBookImage()!=null){
+                                bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
+                            }
+
+                return   BookResponse.builder()
                         .id(book.getId())
                         .author(book.getAuthor())
                         .title(book.getTitle())
                         .publishYear(book.getPublishYear())
                         .publisher(book.getPublisher())
                         .status(book.getStatus())
-                        .bookUrl(book.getBookImage().getUrl())
-                        .build())
+                        .bookUrl(bookUrl)
+                        .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -48,6 +57,10 @@ public class BookService {
     public BookResponse getBookById(Long id){
         Book book=bookRepository.findById(id)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
+        String bookUrl=null;
+        if(book.getBookImage()!=null){
+            bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
+        }
         return BookResponse.builder()
                 .id(book.getId())
                 .author(book.getAuthor())
@@ -55,7 +68,7 @@ public class BookService {
                 .publishYear(book.getPublishYear())
                 .publisher(book.getPublisher())
                 .status(book.getStatus())
-                .bookUrl(book.getBookImage().getUrl())
+                .bookUrl(bookUrl)
                 .build();
     }
 
