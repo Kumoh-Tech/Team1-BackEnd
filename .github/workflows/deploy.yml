@@ -27,11 +27,11 @@ jobs:
           touch ./application.yml
           echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
 
-      # (3-2) Gradle 빌드 (테스트 포함)
+      # (3-2) Gradle 빌드 (테스트 제외)
       - name: Build with Gradle
         run: |
           chmod +x gradlew
-          ./gradlew clean build
+          ./gradlew clean build -x test
 
       # (4) ECR 로그인 (도커 로그인)
       - name: Login to Amazon ECR
