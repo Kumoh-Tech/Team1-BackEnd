@@ -47,7 +47,7 @@ jobs:
 
       # (7) EC2 서버에 SSH 접속하여, 도커 배포 자동화
       - name: SSH to EC2 and deploy
-        uses: appleboy/ssh-action@v0.1.11
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
