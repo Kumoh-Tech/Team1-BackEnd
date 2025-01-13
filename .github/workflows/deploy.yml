@@ -70,17 +70,17 @@ jobs:
 
             echo "=== Stop old container ===" >> $DEPLOY_LOG_PATH
             # 이미 동작 중인 컨테이너가 있다면 중지
-            docker ps -q --filter "name=team1-backend-container" | grep -q . && docker stop $CONTAINER_NAME || echo "No container to stop"
+            sudo docker ps -q --filter "name=team1-backend-container" | grep -q . && docker stop $CONTAINER_NAME || echo "No container to stop"
 
             echo "=== Remove old container ===" >> $DEPLOY_LOG_PATH
             # 중지된 컨테이너 삭제
-            docker ps -a -q --filter "name=team1-backend-container" | grep -q . && docker rm $CONTAINER_NAME || echo "No container to remove"
+            sudo docker ps -a -q --filter "name=team1-backend-container" | grep -q . && docker rm $CONTAINER_NAME || echo "No container to remove"
 
             echo "=== Pull new image ===" >> $DEPLOY_LOG_PATH
-            docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+            sudo docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
 
             echo "=== Run new container ===" >> $DEPLOY_LOG_PATH
-            docker run -d \
+            sudo docker run -d \
               -p 8080:8080 \
               --name $CONTAINER_NAME \
               ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
