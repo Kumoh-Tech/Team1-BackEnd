@@ -3,6 +3,7 @@ package com.club_board.club_board_server.domain.book;
 public enum BookStatus {
     AVAILABLE("대여 가능"),
     RESERVED("예약 중"),
+    BORROWING("대출 중"),
     FULLY_RESERVED("예약 불가"),
     ;
 
