@@ -62,7 +62,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            PROJECT_NAME="team1-backend"
+            PROJECT_NAME=${{ secrets.PROJECT_NAME }}
             CONTAINER_NAME=$PROJECT_NAME-container
             DEPLOY_LOG_PATH="/home/ubuntu/$PROJECT_NAME/deploy.log"
 
