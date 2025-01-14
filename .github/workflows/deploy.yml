@@ -1,0 +1,90 @@
+name: CI/CD to EC2
+
+on:
+  push:
+    branches: [ "dev", "CI/CD" ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # (1) 리포지토리 체크아웃
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      # (2) AWS 자격 증명 설정
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # (3-1) application.yml 파일 생성
+      - name: Make application.yml
+        run: |
+          mkdir -p src/main/resources
+          cd src/main/resources
+          touch ./application.yml
+          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+
+      # (3-2) Gradle 빌드 (테스트 제외)
+      - name: Build with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build
+
+      # (4) ECR 로그인 (도커 로그인)
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS \
+          --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      # (5) Docker 이미지 빌드 & 태그
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_REPO_NAME }} .
+          docker tag ${{ secrets.ECR_REPO_NAME }}:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+
+      # (6) ECR에 Docker 이미지 push
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
+
+      # (7) EC2 서버에 SSH 접속하여, 도커 배포 자동화
+      - name: SSH to EC2 and deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            PROJECT_NAME=${{ secrets.PROJECT_NAME }}
+            CONTAINER_NAME=$PROJECT_NAME-container
+            DEPLOY_LOG_PATH="/home/ubuntu/$PROJECT_NAME/deploy.log"
+
+            echo "=== Docker login to ECR ===" >> $DEPLOY_LOG_PATH
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }} >> $DEPLOY_LOG_PATH
+
+            echo "=== Stop old container ===" >> $DEPLOY_LOG_PATH
+            # 이미 동작 중인 컨테이너가 있다면 중지
+            docker ps -q --filter "name=$CONTAINER_NAME" | grep -q . && docker stop $CONTAINER_NAME || echo "No container to stop" >> $DEPLOY_LOG_PATH
+
+            echo "=== Remove old container ===" >> $DEPLOY_LOG_PATH
+            # 중지된 컨테이너 삭제
+            docker ps -a -q --filter "name=$CONTAINER_NAME" | grep -q . && docker rm $CONTAINER_NAME || echo "No container to remove" >> $DEPLOY_LOG_PATH
+
+            echo "=== Pull new image ===" >> $DEPLOY_LOG_PATH
+            docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }} >> $DEPLOY_LOG_PATH
+
+            echo "=== Run new container ===" >> $DEPLOY_LOG_PATH
+            docker run -d \
+              -p 80:8080 \
+              --name $CONTAINER_NAME \
+              ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest >> $DEPLOY_LOG_PATH
+
+            echo "=== Deployment completed! ===" >> $DEPLOY_LOG_PATH
