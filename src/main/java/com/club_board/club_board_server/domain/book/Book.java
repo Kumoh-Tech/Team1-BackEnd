@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -35,6 +38,10 @@ public class Book {
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private BookStatus status;
+
+    @Setter
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
+    private BookImage bookImage;
 
     @Builder
     public Book(String title, String author, String publisher, int publishYear) {
