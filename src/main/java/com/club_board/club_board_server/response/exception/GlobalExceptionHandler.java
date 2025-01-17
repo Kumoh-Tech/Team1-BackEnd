@@ -41,5 +41,11 @@ public class GlobalExceptionHandler {
                 .status(ExceptionType.CONCURRENCY_CONFLICT.getStatus())
                 .body(ResponseUtil.createFailureResponse(ExceptionType.CONCURRENCY_CONFLICT));
     }
+    @ExceptionHandler(LockTimeoutException.class)
+    public ResponseEntity<ResponseBody<Void>> handleLockTimeoutException(LockTimeoutException e) {
+        return ResponseEntity
+                .status(ExceptionType.LOCK_TIMEOUT.getStatus())
+                .body(ResponseUtil.createFailureResponse(ExceptionType.LOCK_TIMEOUT));
+    }
 
 }
