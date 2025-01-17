@@ -43,7 +43,8 @@ public enum ExceptionType {
     //BOOK
     BOOK_NOT_FOUND(NOT_FOUND,"B001","해당하는 책이 존재하지 않습니다."),
     BOOK_ALREADY_FULL(BAD_REQUEST,"B002","이미 가득 찬 예약입니다."),
-    RESERVATION_NOT_FOUND(NOT_FOUND,"B003","해당하는 예약이 존재하지 않습니다.")
+    RESERVATION_NOT_FOUND(NOT_FOUND,"B003","해당하는 예약이 존재하지 않습니다."),
+    CONCURRENCY_CONFLICT(CONFLICT,"B004","동시에 요청이 처리되어 충돌이 발생했습니다.");
     ;
 
     private final HttpStatus status;
