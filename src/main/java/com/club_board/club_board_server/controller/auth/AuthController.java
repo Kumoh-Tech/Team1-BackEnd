@@ -31,11 +31,5 @@ public class AuthController {
         authService.forgotPassword(resetPasswordRequest);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("임시 비밀번호 생성 완료"));
     }
-
-    @GetMapping("/board")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<ResponseBody<String>> test(){
-        return ResponseEntity.ok(ResponseUtil.createSuccessResponse("ok"));
-    }
 }
 

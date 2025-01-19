@@ -72,11 +72,11 @@ public class BookService {
                 .build();
     }
 
-
+    @Transactional
     public void addReservation(Long bookId,Long userId){
 
         // 예약하고자 하는 책 찾기
-        Book book=bookRepository.findById(bookId)
+        Book book=bookRepository.findBookWithPessimisticLock(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
 
         // 예약 수를 동적으로 계산하여 체크
@@ -111,7 +111,7 @@ public class BookService {
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
-        if (book.getStatus() == BookStatus.FULLY_RESERVED) {
+        if (book.getStatus() == BookStatus.FULLY_RESERVED && reservationRepository.countActiveReservation(book.getId())-1<3) {
             book.setStatus(BookStatus.AVAILABLE);
             bookRepository.save(book);
         }
