@@ -103,6 +103,7 @@ public class BookService {
     }
 
     // 예약 취소
+    @Transactional
     public void cancelReservation(Long bookId,Long userId){
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
@@ -113,7 +114,6 @@ public class BookService {
 
         if (book.getStatus() == BookStatus.FULLY_RESERVED && reservationRepository.countActiveReservation(book.getId())-1<3) {
             book.setStatus(BookStatus.AVAILABLE);
-            bookRepository.save(book);
         }
     }
 
