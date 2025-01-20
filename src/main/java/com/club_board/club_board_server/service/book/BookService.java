@@ -39,6 +39,7 @@ public class BookService {
                             if(book.getBookImage()!=null){
                                 bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
                             }
+                            int borrowCount=reservationRepository.countActiveReservation(book.getId());
 
                 return   BookResponse.builder()
                         .id(book.getId())
@@ -48,6 +49,7 @@ public class BookService {
                         .publisher(book.getPublisher())
                         .status(book.getStatus())
                         .bookUrl(bookUrl)
+                        .borrowCount(borrowCount)
                         .build();
                 })
                 .collect(Collectors.toList());
@@ -61,6 +63,7 @@ public class BookService {
         if(book.getBookImage()!=null){
             bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
         }
+        int borrowCount=reservationRepository.countActiveReservation(book.getId());
         return BookResponse.builder()
                 .id(book.getId())
                 .author(book.getAuthor())
@@ -69,6 +72,7 @@ public class BookService {
                 .publisher(book.getPublisher())
                 .status(book.getStatus())
                 .bookUrl(bookUrl)
+                .borrowCount(borrowCount)
                 .build();
     }
 
@@ -118,6 +122,8 @@ public class BookService {
     }
 
     // 자정이 될 때마다 스케줄러를 통해 주기적으로 메서드 실행
+    //TODO
+    // Batch Update 적용 고려
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void checkUserIsOverdue(){
