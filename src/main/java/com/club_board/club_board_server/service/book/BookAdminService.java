@@ -130,4 +130,58 @@ public class BookAdminService {
                         .build()
                 ).toList();
     }
+
+    @Transactional
+    public void approveBookLoan(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
+
+        if (isReturned(reservation.getStatus())) {
+            throw new BusinessException(ExceptionType.UNSUPPORTED_STATUS_CHANGE);
+        }
+
+        if (!reservationRepository.findByBookAndBorrowingStatus(reservation.getBook().getId()).isEmpty()) {
+            throw new BusinessException(ExceptionType.BOOK_ALREADY_LOAN);
+        }
+
+        reservation.setStatus(ReservationStatus.BORROWING);
+        reservation.setBorrowDate(LocalDateTime.now());
+    }
+
+    @Transactional
+    public void completeBookReturn(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
+
+        reservation.setStatus(this.switchBorrowingToReturn(reservation.getStatus()));
+        reservation.setReturnDate(LocalDateTime.now());
+    }
+
+    private ReservationStatus switchBorrowingToReturn(ReservationStatus status) {
+        if (status == ReservationStatus.BORROWING) {
+            return ReservationStatus.RETURNED;
+        }
+
+        if (status == ReservationStatus.OVERDUE) {
+            return ReservationStatus.OVERDUE_RETURNED;
+        }
+
+        throw new BusinessException(ExceptionType.UNSUPPORTED_STATUS_CHANGE);
+    }
+
+    @Transactional
+    public void correctReturnStatus(Long reservationId, ReservationStatus status) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
+
+        if (!isReturned(status)) {
+            throw new BusinessException(ExceptionType.UNSUPPORTED_STATUS_CHANGE);
+        }
+
+        reservation.setStatus(status);
+    }
+
+    private boolean isReturned(ReservationStatus status) {
+        return status == ReservationStatus.RETURNED || status == ReservationStatus.OVERDUE_RETURNED;
+    }
 }

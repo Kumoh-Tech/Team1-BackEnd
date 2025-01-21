@@ -32,7 +32,8 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
 
-    @Column(name="borrow_date")
+    @Setter
+    @Column(name = "borrow_date")
     private LocalDateTime borrowDate;
 
     @Setter

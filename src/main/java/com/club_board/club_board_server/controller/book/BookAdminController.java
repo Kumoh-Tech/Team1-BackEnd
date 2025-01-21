@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.controller.book;
 
+import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookLoan;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookReservation;
@@ -65,5 +66,29 @@ public class BookAdminController {
     public ResponseEntity<ResponseBody<List<BookReturn>>> getReturns() {
         List<BookReturn> response = bookAdminService.getReturns();
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @PostMapping("/{reservationId}/accept")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<Void>> approveBookLoan(@PathVariable Long reservationId) {
+        bookAdminService.approveBookLoan(reservationId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
+
+    @PostMapping("/{reservationId}/return")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<Void>> completeBookReturn(@PathVariable Long reservationId) {
+        bookAdminService.completeBookReturn(reservationId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
+
+    @PostMapping("/{reservationId}/return/correct")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<Void>> correctReturnStatus(
+            @PathVariable Long reservationId,
+            @RequestParam ReservationStatus status
+    ) {
+        bookAdminService.correctReturnStatus(reservationId, status);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
 }

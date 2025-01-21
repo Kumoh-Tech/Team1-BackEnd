@@ -28,9 +28,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r FROM Reservation r WHERE r.status='RESERVED' ORDER BY r.reservationDate ASC")
     List<Reservation> findAllByStatusOrderByReservationDateAsc();
 
-    @Query("SELECT r FROM Reservation r WHERE r.status='BORROWING' ORDER BY r.borrowDate ASC")
+    @Query("SELECT r FROM Reservation r WHERE r.status='BORROWING' OR r.status='OVERDUE' ORDER BY r.borrowDate ASC")
     List<Reservation> findAllByBorrowingStatusOrderByBorrowDateAsc();
 
     @Query("SELECT r FROM Reservation r WHERE r.status='RETURNED' OR r.status='OVERDUE_RETURNED' ORDER BY r.returnDate ASC")
     List<Reservation> findAllByReturnedStatusOrderByReturnDateAsc();
+
+    @Query("SELECT r FROM Reservation r WHERE r.book.id=:bookId AND (r.status='BORROWING' OR r.status='OVERDUE')")
+    List<Reservation> findByBookAndBorrowingStatus(Long bookId);
 }
