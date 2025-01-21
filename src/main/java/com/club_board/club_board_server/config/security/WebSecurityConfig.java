@@ -27,7 +27,7 @@ public class WebSecurityConfig{
     private final TokenProvider tokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private static final String[] AUTH_WHITELIST = {
-            "/register/**","login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**"
+            "/register/**","/login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**", "/book/**"
     };
 
     @Bean
@@ -35,15 +35,16 @@ public class WebSecurityConfig{
         TokenAuthenticationFilter tokenAuthenticationFilter = new TokenAuthenticationFilter(tokenProvider, customUserDetailsService);
         http
                 .csrf(AbstractHttpConfigurer::disable) //csrf 무시
-                .authorizeRequests(auth -> auth
+                .cors(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().denyAll()
                 );
         // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
         http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.sessionManagement(sessionManagement->sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         // FormLogin, BasicHttp 비활성화
-        http.formLogin((form) -> form.disable());
+        http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
         return http.build();
     }
