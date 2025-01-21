@@ -39,6 +39,7 @@ public class BookService {
                             if(book.getBookImage()!=null){
                                 bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
                             }
+                            int borrowCount=reservationRepository.countActiveReservation(book.getId());
 
                 return   BookResponse.builder()
                         .id(book.getId())
@@ -48,6 +49,7 @@ public class BookService {
                         .publisher(book.getPublisher())
                         .status(book.getStatus())
                         .bookUrl(bookUrl)
+                        .borrowCount(borrowCount)
                         .build();
                 })
                 .collect(Collectors.toList());
@@ -61,6 +63,7 @@ public class BookService {
         if(book.getBookImage()!=null){
             bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
         }
+        int borrowCount=reservationRepository.countActiveReservation(book.getId());
         return BookResponse.builder()
                 .id(book.getId())
                 .author(book.getAuthor())
@@ -69,14 +72,15 @@ public class BookService {
                 .publisher(book.getPublisher())
                 .status(book.getStatus())
                 .bookUrl(bookUrl)
+                .borrowCount(borrowCount)
                 .build();
     }
 
-
+    @Transactional
     public void addReservation(Long bookId,Long userId){
 
         // 예약하고자 하는 책 찾기
-        Book book=bookRepository.findById(bookId)
+        Book book=bookRepository.findBookWithPessimisticLock(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
 
         // 예약 수를 동적으로 계산하여 체크
@@ -103,6 +107,7 @@ public class BookService {
     }
 
     // 예약 취소
+    @Transactional
     public void cancelReservation(Long bookId,Long userId){
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
@@ -111,13 +116,14 @@ public class BookService {
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
-        if (book.getStatus() == BookStatus.FULLY_RESERVED) {
+        if (book.getStatus() == BookStatus.FULLY_RESERVED && reservationRepository.countActiveReservation(book.getId())-1<3) {
             book.setStatus(BookStatus.AVAILABLE);
-            bookRepository.save(book);
         }
     }
 
     // 자정이 될 때마다 스케줄러를 통해 주기적으로 메서드 실행
+    //TODO
+    // Batch Update 적용 고려
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void checkUserIsOverdue(){
