@@ -39,6 +39,7 @@ public class BookService {
                             if(book.getBookImage()!=null){
                                 bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
                             }
+                            int borrowCount=reservationRepository.countActiveReservation(book.getId());
 
                 return   BookResponse.builder()
                         .id(book.getId())
@@ -48,6 +49,7 @@ public class BookService {
                         .publisher(book.getPublisher())
                         .status(book.getStatus())
                         .bookUrl(bookUrl)
+                        .borrowCount(borrowCount)
                         .build();
                 })
                 .collect(Collectors.toList());
@@ -61,6 +63,7 @@ public class BookService {
         if(book.getBookImage()!=null){
             bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
         }
+        int borrowCount=reservationRepository.countActiveReservation(book.getId());
         return BookResponse.builder()
                 .id(book.getId())
                 .author(book.getAuthor())
@@ -69,6 +72,7 @@ public class BookService {
                 .publisher(book.getPublisher())
                 .status(book.getStatus())
                 .bookUrl(bookUrl)
+                .borrowCount(borrowCount)
                 .build();
     }
 
@@ -103,6 +107,7 @@ public class BookService {
     }
 
     // 예약 취소
+    @Transactional
     public void cancelReservation(Long bookId,Long userId){
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
@@ -113,11 +118,12 @@ public class BookService {
 
         if (book.getStatus() == BookStatus.FULLY_RESERVED && reservationRepository.countActiveReservation(book.getId())-1<3) {
             book.setStatus(BookStatus.AVAILABLE);
-            bookRepository.save(book);
         }
     }
 
     // 자정이 될 때마다 스케줄러를 통해 주기적으로 메서드 실행
+    //TODO
+    // Batch Update 적용 고려
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void checkUserIsOverdue(){

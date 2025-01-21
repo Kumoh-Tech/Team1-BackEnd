@@ -12,10 +12,11 @@ public class BookResponse {
     private String publisher;
     private BookStatus status;
     private String bookUrl;
+    private int borrowCount;
 
 
     @Builder
-    public BookResponse(Long id,String title, String author, int publishYear, String publisher, BookStatus status, String bookUrl) {
+    public BookResponse(Long id,String title, String author, int publishYear, String publisher, BookStatus status, String bookUrl,int borrowCount) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -23,5 +24,6 @@ public class BookResponse {
         this.publisher = publisher;
         this.status = status;
         this.bookUrl = bookUrl;
+        this.borrowCount=borrowCount;
     }
 }

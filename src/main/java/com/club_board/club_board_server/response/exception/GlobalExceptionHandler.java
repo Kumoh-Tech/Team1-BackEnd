@@ -2,6 +2,7 @@ package com.club_board.club_board_server.response.exception;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.PessimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseUtil.createFailureResponse(ExceptionType.UNEXPECTED_SERVER_ERROR));
     }
-    @ExceptionHandler(LockTimeoutException.class)
+    @ExceptionHandler(PessimisticLockException.class)
     public ResponseEntity<ResponseBody<Void>> handleLockTimeout(LockTimeoutException e) {
         return ResponseEntity
                 .status(ExceptionType.CONCURRENCY_CONFLICT.getStatus())
