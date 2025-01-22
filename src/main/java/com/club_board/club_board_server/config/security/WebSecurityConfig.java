@@ -27,7 +27,7 @@ public class WebSecurityConfig{
     private final TokenProvider tokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private static final String[] AUTH_WHITELIST = {
-            "/register/**","/login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**", "/book/**"
+            "/register/**","/login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**", "/books/**", "/book/admin/**"
     };
 
     @Bean
