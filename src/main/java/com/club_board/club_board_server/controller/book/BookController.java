@@ -5,6 +5,7 @@ import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.book.BookService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/books")
+@Slf4j
 @RequiredArgsConstructor
 public class BookController {
 
@@ -20,21 +22,25 @@ public class BookController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<List<BookResponse>>> getAllBooks(){
-        List<BookResponse> bookResponses=bookService.getAllBooks();
+    public ResponseEntity<ResponseBody<List<BookResponse>>> getAllBooks(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        List<BookResponse> bookResponses=bookService.getAllBooks(userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(bookResponses));
     }
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<BookResponse>> getBookById(@PathVariable Long id){
-        BookResponse bookResponse= bookService.getBookById(id);
+    public ResponseEntity<ResponseBody<BookResponse>> getBookById(@PathVariable("id") Long id,
+                                                                  @AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        BookResponse bookResponse= bookService.getBookById(id,userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(bookResponse));
     }
 
     @PostMapping("/reservation/{bookId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<String>> reservation(@PathVariable Long bookId,
+    public ResponseEntity<ResponseBody<String>> reservation(@PathVariable("bookId") Long bookId,
                                                             @AuthenticationPrincipal CustomUserDetails customUserDetails){
+        log.info("유저 찾기");
         Long userId=customUserDetails.getUser().getId();
         bookService.addReservation(bookId,userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("Reservation success"));
@@ -42,7 +48,7 @@ public class BookController {
 
     @DeleteMapping("/reservation/{bookId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<String>> cancelReservation(@PathVariable Long bookId,
+    public ResponseEntity<ResponseBody<String>> cancelReservation(@PathVariable("bookId") Long bookId,
                                                                   @AuthenticationPrincipal CustomUserDetails customUserDetails){
         Long userId=customUserDetails.getUser().getId();
         bookService.cancelReservation(bookId,userId);
