@@ -2,20 +2,17 @@ package com.club_board.club_board_server.controller.book;
 
 import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
-import com.club_board.club_board_server.dto.bookAdmin.response.BookLoan;
-import com.club_board.club_board_server.dto.bookAdmin.response.BookReservation;
-import com.club_board.club_board_server.dto.bookAdmin.response.BookReturn;
+import com.club_board.club_board_server.dto.bookAdmin.response.*;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.book.BookAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Controller
@@ -49,22 +46,22 @@ public class BookAdminController {
 
     @GetMapping("/reservations")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<List<BookReservation>>> getReservations() {
-        List<BookReservation> response = bookAdminService.getReservations();
+    public ResponseEntity<ResponseBody<BookReservationResponse>> getReservations(Pageable pageable) {
+        BookReservationResponse response = bookAdminService.getReservations(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/loans")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<List<BookLoan>>> getLoans() {
-        List<BookLoan> response = bookAdminService.getLoans();
+    public ResponseEntity<ResponseBody<BookLoanResponse>> getLoans(Pageable pageable) {
+        BookLoanResponse response = bookAdminService.getLoans(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/returns")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<List<BookReturn>>> getReturns() {
-        List<BookReturn> response = bookAdminService.getReturns();
+    public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(Pageable pageable) {
+        BookReturnResponse response = bookAdminService.getReturns(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 

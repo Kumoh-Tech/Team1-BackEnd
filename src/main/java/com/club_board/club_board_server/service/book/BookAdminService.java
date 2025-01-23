@@ -5,9 +5,8 @@ import com.club_board.club_board_server.domain.book.BookImage;
 import com.club_board.club_board_server.domain.book.Reservation;
 import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
-import com.club_board.club_board_server.dto.bookAdmin.response.BookLoan;
-import com.club_board.club_board_server.dto.bookAdmin.response.BookReservation;
-import com.club_board.club_board_server.dto.bookAdmin.response.BookReturn;
+import com.club_board.club_board_server.dto.bookAdmin.response.*;
+import com.club_board.club_board_server.dto.pageable.PageInfo;
 import com.club_board.club_board_server.repository.book.BookImageRepository;
 import com.club_board.club_board_server.repository.book.BookRepository;
 import com.club_board.club_board_server.repository.book.ReservationRepository;
@@ -18,6 +17,8 @@ import com.club_board.club_board_server.service.file.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,9 +86,10 @@ public class BookAdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookReservation> getReservations() {
-        return reservationRepository.findAllByStatusOrderByReservationDateAsc()
-                .stream()
+    public BookReservationResponse getReservations(Pageable pageable) {
+        Page<Reservation> reservationPage = reservationRepository.findAllByOneStatus(ReservationStatus.RESERVED, pageable);
+
+        List<BookReservation> reservations = reservationPage.stream()
                 .map(reservation -> BookReservation.builder()
                         .bookId(reservation.getBook().getId())
                         .bookTitle(reservation.getBook().getTitle())
@@ -97,12 +99,19 @@ public class BookAdminService {
                         .reservationDate(reservation.getReservationDate())
                         .build()
                 ).toList();
+
+        return BookReservationResponse.builder()
+                .reservations(reservations)
+                .paging(PageInfo.from(pageable, reservationPage))
+                .build();
     }
 
     @Transactional(readOnly = true)
-    public List<BookLoan> getLoans() {
-        return reservationRepository.findAllByBorrowingStatusOrderByBorrowDateAsc()
-                .stream()
+    public BookLoanResponse getLoans(Pageable pageable) {
+        Page<Reservation> reservationPage = reservationRepository
+                .findAllByTwoStatus(ReservationStatus.BORROWING, ReservationStatus.OVERDUE, pageable);
+
+        List<BookLoan> loans = reservationPage.stream()
                 .map(reservation -> BookLoan.builder()
                         .bookId(reservation.getBook().getId())
                         .bookTitle(reservation.getBook().getTitle())
@@ -113,12 +122,19 @@ public class BookAdminService {
                         .returnDueDate(reservation.getBorrowDate().plusDays(MAX_LOAN_PERIOD_DAYS))
                         .build()
                 ).toList();
+
+        return BookLoanResponse.builder()
+                .loans(loans)
+                .paging(PageInfo.from(pageable, reservationPage))
+                .build();
     }
 
     @Transactional(readOnly = true)
-    public List<BookReturn> getReturns() {
-        return reservationRepository.findAllByReturnedStatusOrderByReturnDateAsc()
-                .stream()
+    public BookReturnResponse getReturns(Pageable pageable) {
+        Page<Reservation> reservationPage = reservationRepository
+                .findAllByTwoStatus(ReservationStatus.RETURNED, ReservationStatus.OVERDUE_RETURNED, pageable);
+
+        List<BookReturn> returns = reservationPage.stream()
                 .map(reservation -> BookReturn.builder()
                         .bookId(reservation.getBook().getId())
                         .bookTitle(reservation.getBook().getTitle())
@@ -129,6 +145,11 @@ public class BookAdminService {
                         .returnDate(reservation.getReturnDate())
                         .build()
                 ).toList();
+
+        return BookReturnResponse.builder()
+                .returns(returns)
+                .paging(PageInfo.from(pageable, reservationPage))
+                .build();
     }
 
     @Transactional
