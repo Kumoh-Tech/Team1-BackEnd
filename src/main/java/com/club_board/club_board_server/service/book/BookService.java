@@ -41,7 +41,7 @@ public class BookService {
                                 bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
                             }
                             int borrowCount=reservationRepository.countActiveReservation(book.getId());
-                            boolean isBorrowing = reservationRepository.findByBookIdAndUserId(book.getId(), userId).isPresent();
+                            boolean isBorrowing = reservationRepository.findReservedReservationByBookAndUser(book.getId(), userId).isPresent();
 
                 return   BookResponse.builder()
                         .id(book.getId())
@@ -67,7 +67,7 @@ public class BookService {
             bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
         }
         int borrowCount=reservationRepository.countActiveReservation(book.getId());
-        boolean isBorrowing = reservationRepository.findByBookIdAndUserId(id, userId).isPresent();
+        boolean isBorrowing = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
         return BookResponse.builder()
                 .id(book.getId())
                 .author(book.getAuthor())
@@ -117,7 +117,7 @@ public class BookService {
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
 
-        Reservation reservation=reservationRepository.findByBookIdAndUserId(bookId,userId)
+        Reservation reservation=reservationRepository.findReservedReservationByBookAndUser(bookId,userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
