@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -135,23 +134,14 @@ public class BookService {
     public void checkUserIsOverdue(){
         LocalDateTime today=LocalDateTime.now();
         LocalDateTime overdueDate=today.minusDays(14);
-        log.info("OverDue Date: "+overdueDate);
         List<Reservation> overdueReservation=reservationRepository.findAllOverdueReservations(overdueDate);
         if (overdueReservation.isEmpty()) {
             return;
         }
         for(Reservation reservation:overdueReservation){
-            log.info("before reservation={}",reservation);
             reservation.setStatus(ReservationStatus.OVERDUE);
             reservation.getUser().setOverdue(true);
-            log.info("after reservation={}",reservation);
             reservationRepository.save(reservation);
         }
-    }
-
-    @Transactional(readOnly=true)
-    public User findUserById(Long userId){
-        return userRepository.findById(userId)
-                .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
     }
 }
