@@ -13,10 +13,11 @@ public class BookResponse {
     private BookStatus status;
     private String bookUrl;
     private int borrowCount;
+    private boolean isBorrowingBook;
 
 
     @Builder
-    public BookResponse(Long id,String title, String author, int publishYear, String publisher, BookStatus status, String bookUrl,int borrowCount) {
+    public BookResponse(Long id,String title, String author, int publishYear, String publisher, BookStatus status, String bookUrl,int borrowCount,boolean isBorrowingBook) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -25,5 +26,6 @@ public class BookResponse {
         this.status = status;
         this.bookUrl = bookUrl;
         this.borrowCount=borrowCount;
+        this.isBorrowingBook=isBorrowingBook;
     }
 }

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,10 +19,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     int countActiveReservation(@Param("bookId") Long bookId);
 
 
-    Optional<Reservation> findByBookIdAndUserId(Long bookId, Long userId);
+    @Query("SELECT r FROM Reservation r WHERE r.book.id = :bookId AND r.user.id=:userId AND r.status='RESERVED'")
+    Optional<Reservation> findReservedReservationByBookAndUser(Long bookId, Long userId);
 
     // 마감 기한이 지난 예약 내역을 리스트로 가져오는 JPQL
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status='BORROWING' AND r.borrowDate < :overdueDate")
-    List<Reservation> findAllOverdueReservations(@Param("overdueDate") LocalDate overdueDate);
+    List<Reservation> findAllOverdueReservations(@Param("overdueDate") LocalDateTime overdueDate);
 
 }
