@@ -31,13 +31,15 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = getAccessToken(request);
+        // 토큰이 존재할 때
         if (accessToken != null) {
-            boolean isValid = tokenProvider.validToken(accessToken);
-            if (isValid) {
-                authenticateWithToken(accessToken);
-            } else {
-                throw new BusinessException(ExceptionType.INVALID_ACCESS_TOKEN);
-            }
+            // 토큰 유효성 검사
+            tokenProvider.validToken(accessToken,TokenType.ACCESS);
+            authenticateWithToken(accessToken);
+        }
+        else{
+            // 토큰이 존재하지 않으면 예외 처리
+            throw new BusinessException(ExceptionType.NOT_FOUND_ACCESS_TOKEN);
         }
         filterChain.doFilter(request, response);
     }
