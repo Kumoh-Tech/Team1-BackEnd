@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.service.auth;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
+import com.club_board.club_board_server.config.jwt.TokenType;
 import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.User;
@@ -61,14 +62,7 @@ public class AuthService {
             User user=userDetails.getUser();
             String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
             String refreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-            RefreshToken refreshTokenEntity = refreshTokenRepository.findByUserId(user.getId())
-                    .map(existingToken -> {
-                        existingToken.update(refreshToken); // 기존 토큰 업데이트
-                        return existingToken;
-                    })
-                    .orElseGet(() -> new RefreshToken(user.getId(), refreshToken)); // 없으면 새로 생성
-
-            refreshTokenRepository.save(refreshTokenEntity);
+            tokenProvider.updateRefreshToken(refreshToken,user);
             Cookie cookie=setCookie(refreshToken);
             response.addCookie(cookie);
             String message = "로그인 성공";
@@ -127,21 +121,34 @@ public class AuthService {
             throw new BusinessException(ExceptionType.TEMPORARY_PASSWORD_ERROR);
         }
     }
+
     /*
     Refresh-Token 검증
      */
-    //TODO: AT를 재발급하고 다시 DB에 저장하는 로직이 필요함
     public String isValidRefreshToken(String refreshToken){
         try{
+            // DB에서 RefreshToken 존재 여부 확인
             refreshTokenRepository.findByRefreshToken(refreshToken).orElseThrow(
                     ()->new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
+            // 리프레시 토큰 유효성 검사
+            tokenProvider.validToken(refreshToken, TokenType.REFRESH);
+            // claims에서 유저 정보 가져오기
             String username=tokenProvider.getClaims(refreshToken).getSubject();
+            // username으로 UserDetails 조회
             CustomUserDetails userDetails=(CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
-            return tokenProvider.generateAccessToken(userDetails.getUser(),Duration.ofHours(1));
+            User user=userDetails.getUser();
+            // RefreshToken 새로 생성 후 업데이트
+            tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
+            tokenProvider.updateRefreshToken(refreshToken,user);
+            // AccessToken 재발급
+            return tokenProvider.generateAccessToken(user,Duration.ofHours(1));
+        }
+        catch (BusinessException be){
+            throw be;
         }
         catch (Exception e)
         {
-            throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+            throw new BusinessException(ExceptionType.UNEXPECTED_SERVER_ERROR);
         }
     }
 
@@ -166,4 +173,5 @@ public class AuthService {
         }
         return shuffled.toString();
     }
+
 }
