@@ -34,8 +34,8 @@ public enum ExceptionType {
     NOT_FOUND_ACCESS_TOKEN(UNAUTHORIZED,"A006","Access Token 이 존재하지 않습니다."),
     EXPIRED_ACCESS_TOKEN(UNAUTHORIZED,"A007","Access Token 만료"),
     INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A008","Refresh Token 이 유효하지 않습니다."),
-    NOT_FOUND_REFRESH_TOKEN(UNAUTHORIZED,"A006","Refresh Token 이 존재하지 않습니다."),
-    EXPIRED_REFRESH_TOKEN(UNAUTHORIZED,"A007","Refresh Token Token 만료"),
+    NOT_FOUND_REFRESH_TOKEN(UNAUTHORIZED,"A009","Refresh Token 이 존재하지 않습니다."),
+    EXPIRED_REFRESH_TOKEN(UNAUTHORIZED,"A0010","Refresh Token Token 만료"),
 
     // File
     FILE_NOT_FOUND(NOT_FOUND, "F001", "파일이 존재하지 않습니다."),
