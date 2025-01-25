@@ -37,10 +37,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             tokenProvider.validToken(accessToken,TokenType.ACCESS);
             authenticateWithToken(accessToken);
         }
-        else{
-            // 토큰이 존재하지 않으면 예외 처리
-            throw new BusinessException(ExceptionType.NOT_FOUND_ACCESS_TOKEN);
-        }
         filterChain.doFilter(request, response);
     }
 
@@ -66,4 +62,5 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
 }
