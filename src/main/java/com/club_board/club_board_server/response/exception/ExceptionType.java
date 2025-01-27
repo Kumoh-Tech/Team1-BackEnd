@@ -32,7 +32,10 @@ public enum ExceptionType {
     TEMPORARY_PASSWORD_ERROR(INTERNAL_SERVER_ERROR,"A004","임시 비밀번호 생성 오류"),
     INVALID_ACCESS_TOKEN(UNAUTHORIZED,"A005","Access Token 이 유효하지 않습니다."),
     NOT_FOUND_ACCESS_TOKEN(UNAUTHORIZED,"A006","Access Token 이 존재하지 않습니다."),
-    INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A007","Refresh Token 만료"),
+    EXPIRED_ACCESS_TOKEN(UNAUTHORIZED,"A007","Access Token 만료"),
+    INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A008","Refresh Token 이 유효하지 않습니다."),
+    NOT_FOUND_REFRESH_TOKEN(UNAUTHORIZED,"A009","Refresh Token 이 존재하지 않습니다."),
+    EXPIRED_REFRESH_TOKEN(UNAUTHORIZED,"A0010","Refresh Token Token 만료"),
 
     // File
     FILE_NOT_FOUND(NOT_FOUND, "F001", "파일이 존재하지 않습니다."),

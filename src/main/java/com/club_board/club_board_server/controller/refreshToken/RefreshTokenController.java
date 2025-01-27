@@ -1,9 +1,12 @@
 package com.club_board.club_board_server.controller.refreshToken;
 import com.club_board.club_board_server.response.ResponseUtil;
+import com.club_board.club_board_server.response.exception.BusinessException;
+import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +18,10 @@ public class RefreshTokenController {
     private final AuthService authService;
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(@RequestHeader("Refresh-Token") String refreshToken) {
+    public ResponseEntity<?> refreshToken(@CookieValue(value="refresh-token", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            throw new BusinessException(ExceptionType.NOT_FOUND_REFRESH_TOKEN);
+        }
         String newAccessToken=authService.isValidRefreshToken(refreshToken);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(newAccessToken));
     }

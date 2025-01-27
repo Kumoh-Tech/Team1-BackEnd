@@ -20,7 +20,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
 
     @Query("SELECT r FROM Reservation r WHERE r.book.id = :bookId AND r.user.id=:userId AND r.status='RESERVED'")
-    Optional<Reservation> findReservedReservationByBookAndUser(Long bookId, Long userId);
+    Optional<Reservation> findReservedReservationByBookAndUser(@Param("bookId") Long bookId, @Param("userId") Long userId);
 
     // 마감 기한이 지난 예약 내역을 리스트로 가져오는 JPQL
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status='BORROWING' AND r.borrowDate < :overdueDate")

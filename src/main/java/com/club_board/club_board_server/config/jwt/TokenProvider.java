@@ -1,12 +1,10 @@
 package com.club_board.club_board_server.config.jwt;
+import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,7 +43,6 @@ public class TokenProvider {
             List<String> authorities = List.of("ROLE_" + user.getRole());
             // JWT 발급 시간
             Date now=new Date();
-            log.info("만료 시간: {}", expiry);
             return Jwts.builder()
                     .setHeaderParam(Header.TYPE,Header.JWT_TYPE)  //헤더 타입
                     .setIssuer(jwtProperties.getIssuer())    //발급자
@@ -63,9 +60,8 @@ public class TokenProvider {
         }
     }
 
-    public boolean validToken(String token) {
+    public void validToken(String token,TokenType tokenType) {
         try {
-            log.info("token={}", token);
 
             // SecretKeySpec을 사용하여 Key 객체 생성
             String base64SecretKey = jwtProperties.getSecretKey();
@@ -76,14 +72,21 @@ public class TokenProvider {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token)
+                    .parseClaimsJws(token)// 토큰의 만료, 서명 오류, 구조적 문제 검사
                     .getBody();
-
-            log.info("Token is valid. Claims: {}", claims);
-            return true;
-        } catch (Exception e) {
-            log.error("Invalid token: {}", e.getMessage());
-            return false;
+        } catch (ExpiredJwtException e) { // 토큰이 만료되었을 때
+            if(tokenType==TokenType.ACCESS)
+                throw new BusinessException(ExceptionType.EXPIRED_ACCESS_TOKEN);
+            else {
+                throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+            }
+        }
+        catch (Exception e) { //토큰이 유효하지 않을 때
+            if(tokenType==TokenType.ACCESS)
+                throw new BusinessException(ExceptionType.INVALID_ACCESS_TOKEN);
+            else {
+                throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+            }
         }
     }
 
@@ -98,5 +101,15 @@ public class TokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+    public void updateRefreshToken(String refreshToken,User user){
+        RefreshToken refreshTokenEntity = refreshTokenRepository.findByUserId(user.getId())
+                .map(existingToken -> {
+                    existingToken.update(refreshToken); // 기존 토큰 업데이트
+                    return existingToken;
+                })
+                .orElseGet(() -> new RefreshToken(user.getId(), refreshToken)); // 없으면 새로 생성
+
+        refreshTokenRepository.save(refreshTokenEntity);
     }
 }

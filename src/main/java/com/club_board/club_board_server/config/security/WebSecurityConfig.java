@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.config.security;
 import com.club_board.club_board_server.config.jwt.TokenAuthenticationFilter;
+import com.club_board.club_board_server.config.jwt.TokenExceptionHandlerFilter;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class WebSecurityConfig{
     private final CustomUserDetailsService customUserDetailsService;
     private static final String[] AUTH_WHITELIST = {
             "/register/**","/login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**", "/books/**", "/book/admin/**"
+            ,"/refreshToken/**"
     };
 
     @Bean
@@ -42,6 +44,7 @@ public class WebSecurityConfig{
                 );
         // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
         http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new TokenExceptionHandlerFilter(), TokenAuthenticationFilter.class);
         http.sessionManagement(sessionManagement->sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         // FormLogin, BasicHttp 비활성화
         http.formLogin(AbstractHttpConfigurer::disable);
