@@ -2,7 +2,6 @@ package com.club_board.club_board_server.service.auth;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.config.jwt.TokenType;
 import com.club_board.club_board_server.domain.user.CustomUserDetails;
-import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.auth.ResetPasswordRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginRequest;
@@ -145,10 +144,6 @@ public class AuthService {
         }
         catch (BusinessException be){
             throw be;
-        }
-        catch (Exception e)
-        {
-            throw new BusinessException(ExceptionType.UNEXPECTED_SERVER_ERROR);
         }
     }
 
