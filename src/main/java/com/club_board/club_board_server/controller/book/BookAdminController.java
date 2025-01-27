@@ -1,11 +1,14 @@
 package com.club_board.club_board_server.controller.book;
 
+import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
+import com.club_board.club_board_server.dto.bookAdmin.response.*;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.book.BookAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -41,4 +44,48 @@ public class BookAdminController {
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
 
+    @GetMapping("/reservations")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<BookReservationResponse>> getReservations(Pageable pageable) {
+        BookReservationResponse response = bookAdminService.getReservations(pageable);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @GetMapping("/loans")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<BookLoanResponse>> getLoans(Pageable pageable) {
+        BookLoanResponse response = bookAdminService.getLoans(pageable);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @GetMapping("/returns")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(Pageable pageable) {
+        BookReturnResponse response = bookAdminService.getReturns(pageable);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @PostMapping("/{reservationId}/accept")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<Void>> approveBookLoan(@PathVariable Long reservationId) {
+        bookAdminService.approveBookLoan(reservationId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
+
+    @PostMapping("/{reservationId}/return")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<Void>> completeBookReturn(@PathVariable Long reservationId) {
+        bookAdminService.completeBookReturn(reservationId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
+
+    @PostMapping("/{reservationId}/return/correct")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<Void>> correctReturnStatus(
+            @PathVariable Long reservationId,
+            @RequestParam ReservationStatus status
+    ) {
+        bookAdminService.correctReturnStatus(reservationId, status);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
 }
