@@ -149,8 +149,7 @@ public class AuthService {
 
     public Cookie setCookie(String refreshToken){
         String cookieName="refresh-token";
-        String cookieValue=refreshToken;
-        Cookie cookie=new Cookie(cookieName,cookieValue);
+        Cookie cookie=new Cookie(cookieName, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
