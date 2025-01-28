@@ -1,6 +1,9 @@
 package com.club_board.club_board_server.repository.book;
 
 import com.club_board.club_board_server.domain.book.Reservation;
+import com.club_board.club_board_server.domain.book.ReservationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +29,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status='BORROWING' AND r.borrowDate < :overdueDate")
     List<Reservation> findAllOverdueReservations(@Param("overdueDate") LocalDateTime overdueDate);
 
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.book b JOIN FETCH r.user u WHERE r.status=:status")
+    Page<Reservation> findAllByOneStatus(@Param("status") ReservationStatus status, Pageable pageable);
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.book b JOIN FETCH r.user u WHERE r.status=:status1 OR r.status=:status2")
+    Page<Reservation> findAllByTwoStatus(@Param("status1") ReservationStatus status1, @Param("status2") ReservationStatus status2, Pageable pageable);
+
+    @Query("SELECT r FROM Reservation r WHERE r.book.id=:bookId AND (r.status='BORROWING' OR r.status='OVERDUE')")
+    List<Reservation> findByBookAndBorrowingStatus(Long bookId);
 }

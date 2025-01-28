@@ -48,7 +48,9 @@ public enum ExceptionType {
     BOOK_ALREADY_FULL(BAD_REQUEST,"B002","이미 가득 찬 예약입니다."),
     RESERVATION_NOT_FOUND(NOT_FOUND,"B003","해당하는 예약이 존재하지 않습니다."),
     CONCURRENCY_CONFLICT(CONFLICT,"B004","동시에 요청이 처리되어 충돌이 발생했습니다."),
-    LOCK_TIMEOUT(CONFLICT,"B005","락 대기 시간이 초과되었습니다.");
+    LOCK_TIMEOUT(CONFLICT,"B005","락 대기 시간이 초과되었습니다."),
+    BOOK_ALREADY_LOAN(BAD_REQUEST, "B006", "책이 이미 대출 중입니다."),
+    UNSUPPORTED_STATUS_CHANGE(BAD_REQUEST, "B007", "현재 상태에서 변경 하려는 상태는 지원하지 않는 상태 변경입니다."),
     ;
 
     private final HttpStatus status;
