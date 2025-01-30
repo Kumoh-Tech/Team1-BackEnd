@@ -23,13 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookAdminService {
-    private static final int MAX_LOAN_PERIOD_DAYS = 14;
+    public static final int MAX_LOAN_PERIOD_DAYS = 14;
 
     private final BookRepository bookRepository;
     private final BookImageRepository bookImageRepository;
@@ -87,67 +86,30 @@ public class BookAdminService {
 
     @Transactional(readOnly = true)
     public BookReservationResponse getReservations(Pageable pageable) {
-        Page<Reservation> reservationPage = reservationRepository.findAllByOneStatus(ReservationStatus.RESERVED, pageable);
-
-        List<BookReservation> reservations = reservationPage.stream()
-                .map(reservation -> BookReservation.builder()
-                        .bookId(reservation.getBook().getId())
-                        .bookTitle(reservation.getBook().getTitle())
-                        .reservationId(reservation.getId())
-                        .userId(reservation.getUser().getId())
-                        .userName(reservation.getUser().getName())
-                        .reservationDate(reservation.getReservationDate())
-                        .build()
-                ).toList();
+        Page<BookReservation> reservationPage = reservationRepository.findAllReservations(pageable);
 
         return BookReservationResponse.builder()
-                .reservations(reservations)
+                .reservations(reservationPage.toList())
                 .paging(PageInfo.from(pageable, reservationPage))
                 .build();
     }
 
     @Transactional(readOnly = true)
     public BookLoanResponse getLoans(Pageable pageable) {
-        Page<Reservation> reservationPage = reservationRepository
-                .findAllByTwoStatus(ReservationStatus.BORROWING, ReservationStatus.OVERDUE, pageable);
-
-        List<BookLoan> loans = reservationPage.stream()
-                .map(reservation -> BookLoan.builder()
-                        .bookId(reservation.getBook().getId())
-                        .bookTitle(reservation.getBook().getTitle())
-                        .reservationId(reservation.getId())
-                        .userId(reservation.getUser().getId())
-                        .userName(reservation.getUser().getName())
-                        .borrowDate(reservation.getBorrowDate())
-                        .returnDueDate(reservation.getBorrowDate().plusDays(MAX_LOAN_PERIOD_DAYS))
-                        .build()
-                ).toList();
+        Page<BookLoan> reservationPage = reservationRepository.findAllLoans(pageable);
 
         return BookLoanResponse.builder()
-                .loans(loans)
+                .loans(reservationPage.toList())
                 .paging(PageInfo.from(pageable, reservationPage))
                 .build();
     }
 
     @Transactional(readOnly = true)
     public BookReturnResponse getReturns(Pageable pageable) {
-        Page<Reservation> reservationPage = reservationRepository
-                .findAllByTwoStatus(ReservationStatus.RETURNED, ReservationStatus.OVERDUE_RETURNED, pageable);
-
-        List<BookReturn> returns = reservationPage.stream()
-                .map(reservation -> BookReturn.builder()
-                        .bookId(reservation.getBook().getId())
-                        .bookTitle(reservation.getBook().getTitle())
-                        .reservationId(reservation.getId())
-                        .userId(reservation.getUser().getId())
-                        .userName(reservation.getUser().getName())
-                        .borrowDate(reservation.getBorrowDate())
-                        .returnDate(reservation.getReturnDate())
-                        .build()
-                ).toList();
+        Page<BookReturn> reservationPage = reservationRepository.findAllReturns(pageable);
 
         return BookReturnResponse.builder()
-                .returns(returns)
+                .returns(reservationPage.toList())
                 .paging(PageInfo.from(pageable, reservationPage))
                 .build();
     }
