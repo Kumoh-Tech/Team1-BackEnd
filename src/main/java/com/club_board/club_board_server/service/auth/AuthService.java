@@ -10,7 +10,6 @@ import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepo
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -24,8 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
-
-
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -43,6 +40,7 @@ public class AuthService {
     private static final int MAX_PASSWORD_LENGTH=20;
     private static final SecureRandom RANDOM=new SecureRandom();
     private final PasswordEncoder passwordEncoder;
+    private final CustomUserDetailsService customUserDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
 
     /*
@@ -126,35 +124,25 @@ public class AuthService {
     /*
     Refresh-Token 검증
      */
-    public String validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response) {
-        try {
-            // DB에서 Refresh Token 확인
-            refreshTokenRepository.findByRefreshToken(refreshToken)
-                    .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
-
-            // Refresh Token 유효성 검사
+    public String isValidRefreshToken(String refreshToken){
+        try{
+            // DB에서 RefreshToken 존재 여부 확인
+            refreshTokenRepository.findByRefreshToken(refreshToken).orElseThrow(
+                    ()->new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
+            // 리프레시 토큰 유효성 검사
             tokenProvider.validToken(refreshToken, TokenType.REFRESH);
-
-            // 토큰에서 유저 ID 추출 및 유저 조회
-            Long userId = tokenProvider.getClaims(refreshToken).get("id", Long.class);
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
-
-            // Refresh Token 만료 임박 시 새로 발급
-            Claims claims = tokenProvider.getClaims(refreshToken);
-            long remainingTime = claims.getExpiration().getTime() - System.currentTimeMillis();
-            if (remainingTime < Duration.ofDays(1).toMillis()) { // 1일 이하 남은 경우
-                String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-                tokenProvider.updateRefreshToken(newRefreshToken, user);
-
-                // Cookie에 새 Refresh Token 저장
-                Cookie cookie = setCookie(newRefreshToken);
-                response.addCookie(cookie);
-            }
-
-            // Access Token 발급
-            return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
-        } catch (BusinessException be) {
+            // claims에서 유저 정보 가져오기
+            String username=tokenProvider.getClaims(refreshToken).getSubject();
+            // username으로 UserDetails 조회
+            CustomUserDetails userDetails=(CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
+            User user=userDetails.getUser();
+            // RefreshToken 새로 생성 후 업데이트
+            tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
+            tokenProvider.updateRefreshToken(refreshToken,user);
+            // AccessToken 재발급
+            return tokenProvider.generateAccessToken(user,Duration.ofHours(1));
+        }
+        catch (BusinessException be){
             throw be;
         }
     }
@@ -165,7 +153,7 @@ public class AuthService {
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge(60*60*24*7);
+        cookie.setMaxAge(60*60*24);
         return cookie;
     }
 
