@@ -48,14 +48,18 @@ public class BookAdminController {
 
     @GetMapping("/reservations")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<BookReservationResponse>> getReservations(Pageable pageable) {
+    public ResponseEntity<ResponseBody<BookReservationResponse>> getReservations(
+            @PageableDefault(sort = "reservationDate") Pageable pageable
+    ) {
         BookReservationResponse response = bookAdminService.getReservations(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/loans")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<BookLoanResponse>> getLoans(Pageable pageable) {
+    public ResponseEntity<ResponseBody<BookLoanResponse>> getLoans(
+            @PageableDefault(sort = "borrowDate") Pageable pageable
+    ) {
         BookLoanResponse response = bookAdminService.getLoans(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
@@ -63,7 +67,7 @@ public class BookAdminController {
     @GetMapping("/returns")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(
-            @PageableDefault(size = 20, direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(sort = "returnDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         BookReturnResponse response = bookAdminService.getReturns(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
