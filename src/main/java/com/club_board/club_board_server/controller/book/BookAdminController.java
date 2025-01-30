@@ -9,6 +9,8 @@ import com.club_board.club_board_server.service.book.BookAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -60,7 +62,9 @@ public class BookAdminController {
 
     @GetMapping("/returns")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(Pageable pageable) {
+    public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(
+            @PageableDefault(size = 20, direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         BookReturnResponse response = bookAdminService.getReturns(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
