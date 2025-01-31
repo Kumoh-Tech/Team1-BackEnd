@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequiredArgsConstructor
@@ -19,12 +20,12 @@ public class RefreshTokenController {
 
     @PostMapping("/refreshToken")
     public ResponseEntity<?> refreshToken(@CookieValue(value="refresh-token", required = false) String refreshToken,
+                                          @RequestHeader(value = "User-Agent", required = false) String requestUserAgent,
                                           HttpServletResponse response) {
         if (refreshToken == null) {
             throw new BusinessException(ExceptionType.NOT_FOUND_REFRESH_TOKEN);
         }
-
-        String newAccessToken = authService.validateAndHandleRefreshToken(refreshToken, response);
+        String newAccessToken = authService.validateAndHandleRefreshToken(refreshToken, response, requestUserAgent);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(newAccessToken));
     }
 }

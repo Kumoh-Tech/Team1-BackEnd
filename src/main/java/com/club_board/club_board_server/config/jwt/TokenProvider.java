@@ -27,13 +27,11 @@ public class TokenProvider {
      */
     public String generateAccessToken(User user, Duration expiredAt) {
         Date now=new Date();
-        log.info("at 발급");
         return makeToken(new Date(now.getTime()+expiredAt.toMillis()),user);
     }
 
     public String generateRefreshToken(User user,Duration expiredAt) {
         Date now=new Date();
-        log.info("rt 발급");
         return makeToken(new Date(now.getTime()+expiredAt.toMillis()),user);
     }
 
@@ -102,13 +100,13 @@ public class TokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
-    public void updateRefreshToken(String refreshToken,User user){
+    public void updateRefreshToken(String refreshToken, User user, String userAgent){
         RefreshToken refreshTokenEntity = refreshTokenRepository.findByUserId(user.getId())
                 .map(existingToken -> {
                     existingToken.update(refreshToken); // 기존 토큰 업데이트
                     return existingToken;
                 })
-                .orElseGet(() -> new RefreshToken(user.getId(), refreshToken)); // 없으면 새로 생성
+                .orElseGet(() -> new RefreshToken(user.getId(), refreshToken, userAgent)); // 없으면 새로 생성
 
         refreshTokenRepository.save(refreshTokenEntity);
     }
