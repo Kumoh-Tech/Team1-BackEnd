@@ -1,6 +1,6 @@
 # Build stage
 FROM gradle:8.12.0-jdk21 AS builder
-WORKDIR /app  
+WORKDIR /app
 
 # Copy dependency definitions first 
 COPY build.gradle settings.gradle ./       
@@ -31,7 +31,7 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:80/actuator/health || exit 1
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
