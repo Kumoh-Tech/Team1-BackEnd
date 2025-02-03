@@ -11,6 +11,7 @@ import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepo
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
+import com.club_board.club_board_server.service.mail.EmailService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,17 +35,17 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailService emailService;
     private static final String UPPER_CASE="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String LOWER_CASE="abcdefghijklmnopqrstuvwxyz";
     private static final String DIGITS="0123456789";
     private static final String SPECIAL_CHARACTERS="@!#$%^&*()_+";
-    private final TemporaryEmailService temporaryEmailService;
     private static final String ALL_CHARACTERS=UPPER_CASE + LOWER_CASE +DIGITS+SPECIAL_CHARACTERS;
     private static final int MIN_PASSWORD_LENGTH=10;
     private static final int MAX_PASSWORD_LENGTH=20;
     private static final SecureRandom RANDOM=new SecureRandom();
-    private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     /*
     로그인 메소드
@@ -104,7 +105,7 @@ public class AuthService {
         if(userObj.getUsername().equals(username) && userObj.getName().equals(name) && userObj.getStudent_id().equals(studentId))
         {
             String newPassword=generateTemporaryPassword();
-            temporaryEmailService.sendPasswordMail(username, newPassword);
+            emailService.sendPasswordMail(username, newPassword);
             String encodedPassword=passwordEncoder.encode(newPassword);
             userObj.issuePassword(encodedPassword);
             userRepository.save(userObj);

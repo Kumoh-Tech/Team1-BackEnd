@@ -1,5 +1,9 @@
 package com.club_board.club_board_server.domain.mail;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
+
+@Getter
 public class VerificationCode {
 
     private int code;
@@ -8,13 +12,5 @@ public class VerificationCode {
     public VerificationCode(int code, LocalDateTime timestamp) {
         this.code=code;
         this.timestamp=timestamp;
-    }
-
-    public int getCode(){
-        return code;
-    }
-
-    public LocalDateTime getTimestamp(){
-        return timestamp;
     }
 }
