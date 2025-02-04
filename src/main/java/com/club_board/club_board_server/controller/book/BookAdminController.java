@@ -9,6 +9,8 @@ import com.club_board.club_board_server.service.book.BookAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -46,21 +48,27 @@ public class BookAdminController {
 
     @GetMapping("/reservations")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<BookReservationResponse>> getReservations(Pageable pageable) {
+    public ResponseEntity<ResponseBody<BookReservationResponse>> getReservations(
+            @PageableDefault(sort = "reservationDate") Pageable pageable
+    ) {
         BookReservationResponse response = bookAdminService.getReservations(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/loans")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<BookLoanResponse>> getLoans(Pageable pageable) {
+    public ResponseEntity<ResponseBody<BookLoanResponse>> getLoans(
+            @PageableDefault(sort = "borrowDate") Pageable pageable
+    ) {
         BookLoanResponse response = bookAdminService.getLoans(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/returns")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(Pageable pageable) {
+    public ResponseEntity<ResponseBody<BookReturnResponse>> getReturns(
+            @PageableDefault(sort = "returnDate", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         BookReturnResponse response = bookAdminService.getReturns(pageable);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
