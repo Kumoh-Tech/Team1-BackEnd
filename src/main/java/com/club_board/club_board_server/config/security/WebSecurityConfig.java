@@ -29,13 +29,14 @@ public class WebSecurityConfig{
     private final CustomUserDetailsService customUserDetailsService;
     private static final String[] AUTH_WHITELIST = {
             "/register/**","/login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**", "/books/**", "/book/admin/**"
-            ,"/refreshToken/**", "/actuator/health"
+            ,"/refreshToken/**", "/actuator/health" ,"/logout/**"
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         TokenAuthenticationFilter tokenAuthenticationFilter = new TokenAuthenticationFilter(tokenProvider, customUserDetailsService);
         http
+                .logout(AbstractHttpConfigurer::disable)  // 시큐리티에서 기본적으로 제공하는 로그아웃 무효화
                 .csrf(AbstractHttpConfigurer::disable) //csrf 무시
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
