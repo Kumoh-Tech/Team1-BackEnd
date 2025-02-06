@@ -29,7 +29,8 @@ public class WebSecurityConfig{
     private final CustomUserDetailsService customUserDetailsService;
     private static final String[] AUTH_WHITELIST = {
             "/register/**","/login/**","/post/**","/comment/**","/admin/**","/myPage/**","/board/**","/club/**", "/books/**", "/book/admin/**"
-            ,"/refreshToken/**", "/actuator/health" ,"/logout/**"
+            ,"/refreshToken/**", "/files/**", "/actuator/health","/logout/**"
+
     };
 
     @Bean

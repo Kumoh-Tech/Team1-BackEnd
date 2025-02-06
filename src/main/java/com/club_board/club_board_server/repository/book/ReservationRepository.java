@@ -1,7 +1,9 @@
 package com.club_board.club_board_server.repository.book;
 
 import com.club_board.club_board_server.domain.book.Reservation;
-import com.club_board.club_board_server.domain.book.ReservationStatus;
+import com.club_board.club_board_server.dto.bookAdmin.response.BookLoan;
+import com.club_board.club_board_server.dto.bookAdmin.response.BookReservation;
+import com.club_board.club_board_server.dto.bookAdmin.response.BookReturn;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,11 +31,20 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.status='BORROWING' AND r.borrowDate < :overdueDate")
     List<Reservation> findAllOverdueReservations(@Param("overdueDate") LocalDateTime overdueDate);
 
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.book b JOIN FETCH r.user u WHERE r.status=:status")
-    Page<Reservation> findAllByOneStatus(@Param("status") ReservationStatus status, Pageable pageable);
+    @Query("SELECT new com.club_board.club_board_server.dto.bookAdmin.response.BookReservation(" +
+            "b.id, b.title, r.id, u.id, u.name, r.reservationDate) " +
+            "FROM Reservation r JOIN r.book b JOIN r.user u WHERE r.status='RESERVED'")
+    Page<BookReservation> findAllReservations(Pageable pageable);
 
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.book b JOIN FETCH r.user u WHERE r.status=:status1 OR r.status=:status2")
-    Page<Reservation> findAllByTwoStatus(@Param("status1") ReservationStatus status1, @Param("status2") ReservationStatus status2, Pageable pageable);
+    @Query("SELECT new com.club_board.club_board_server.dto.bookAdmin.response.BookLoan(" +
+            "b.id, b.title, r.id, u.id, u.name, r.borrowDate) " +
+            "FROM Reservation r JOIN r.book b JOIN r.user u WHERE r.status='BORROWING' OR r.status='OVERDUE'")
+    Page<BookLoan> findAllLoans(Pageable pageable);
+
+    @Query("SELECT new com.club_board.club_board_server.dto.bookAdmin.response.BookReturn(" +
+            "b.id, b.title, r.id, u.id, u.name, r.borrowDate, r.returnDate) " +
+            "FROM Reservation r JOIN r.book b JOIN r.user u WHERE r.status='RETURNED' OR r.status='OVERDUE_RETURNED'")
+    Page<BookReturn> findAllReturns(Pageable pageable);
 
     @Query("SELECT r FROM Reservation r WHERE r.book.id=:bookId AND (r.status='BORROWING' OR r.status='OVERDUE')")
     List<Reservation> findByBookAndBorrowingStatus(Long bookId);
