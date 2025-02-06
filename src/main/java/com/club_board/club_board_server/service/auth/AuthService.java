@@ -1,7 +1,7 @@
 package com.club_board.club_board_server.service.auth;
-
 import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.config.jwt.TokenType;
+import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.auth.ResetPasswordRequest;
@@ -13,6 +13,7 @@ import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.mail.EmailService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
-
+import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -34,10 +35,8 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CustomUserDetailsService customUserDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailService emailService;
-
     private static final String UPPER_CASE="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String LOWER_CASE="abcdefghijklmnopqrstuvwxyz";
     private static final String DIGITS="0123456789";
@@ -51,7 +50,7 @@ public class AuthService {
     로그인 메소드
      */
     @Transactional
-    public UserLoginResponse login(UserLoginRequest userLoginRequest, HttpServletResponse response)
+    public UserLoginResponse login(UserLoginRequest userLoginRequest, HttpServletRequest request, HttpServletResponse response)
     {
         try{
             Authentication authentication=authenticationManager.authenticate(
@@ -62,10 +61,12 @@ public class AuthService {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             CustomUserDetails userDetails=(CustomUserDetails) authentication.getPrincipal();
+            // User-Agent 정보 불러오기
             User user=userDetails.getUser();
+            String userAgent=request.getHeader("User-Agent");
+            //토큰 발급
             String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
-            String refreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-            tokenProvider.updateRefreshToken(refreshToken,user);
+            String refreshToken = generateAndStoreRefreshToken(user, userAgent);
             Cookie cookie=setCookie(refreshToken);
             response.addCookie(cookie);
             String message = "로그인 성공";
@@ -75,6 +76,17 @@ public class AuthService {
         {
             throw new BusinessException(ExceptionType.INVALID_LOGIN);
         }
+    }
+    /*
+    로그아웃 메소드
+     */
+    public void logout(String refreshToken, HttpServletResponse response){
+        refreshTokenRepository.findByRefreshToken(refreshToken)
+                .ifPresent(refreshTokenRepository::delete);
+        Cookie cookie = new Cookie("refresh-token",null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
 
     /*
@@ -128,39 +140,50 @@ public class AuthService {
     /*
     Refresh-Token 검증
      */
-    public String isValidRefreshToken(String refreshToken){
-        try{
-            // DB에서 RefreshToken 존재 여부 확인
-            refreshTokenRepository.findByRefreshToken(refreshToken).orElseThrow(
-                    ()->new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
-            // 리프레시 토큰 유효성 검사
-            tokenProvider.validToken(refreshToken, TokenType.REFRESH);
-            // claims에서 유저 정보 가져오기
-            String username=tokenProvider.getClaims(refreshToken).getSubject();
-            // username으로 UserDetails 조회
-            CustomUserDetails userDetails=(CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
-            User user=userDetails.getUser();
-            // RefreshToken 새로 생성 후 업데이트
-            tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
-            tokenProvider.updateRefreshToken(refreshToken,user);
-            // AccessToken 재발급
-            return tokenProvider.generateAccessToken(user,Duration.ofHours(1));
+    public String validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
+        // DB에서 Refresh Token 확인
+        RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
+        // 저장된 기기와 요청 기기 정보 비교
+        if(!existingRefreshToken.getUserAgent().equals(requestUserAgent)){
+            throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
         }
-        catch (BusinessException be){
-            throw be;
-        }
+        // Refresh Token 유효성 검사
+        tokenProvider.validToken(refreshToken, TokenType.REFRESH);
+
+        // 토큰에서 유저 ID 추출 및 유저 조회
+        Long userId = tokenProvider.getClaims(refreshToken).get("id", Long.class);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+
+        // Refresh Token 만료 임박 시 새로 발급
+        refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
+        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
+        tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
+            // Cookie에 새 Refresh Token 저장
+        Cookie cookie = setCookie(newRefreshToken);
+        response.addCookie(cookie);
+
+        // Access Token 발급
+        return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
     }
 
+    /*
+    refresh-token 쿠키 설정
+     */
     public Cookie setCookie(String refreshToken){
         String cookieName="refresh-token";
         Cookie cookie=new Cookie(cookieName, refreshToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge(60*60*24);
+        cookie.setMaxAge(60*60*24*7);
         return cookie;
     }
 
+    /*
+    임시 비밀번호 shuffle
+     */
     private static String shuffleString(String input){
         StringBuilder shuffled=new StringBuilder(input.length());
         char[] characters=input.toCharArray();
@@ -170,5 +193,19 @@ public class AuthService {
             characters[randomIndex]=characters[i-1];
         }
         return shuffled.toString();
+    }
+
+    /**
+     *  로그인 시 Refresh Token 기기별로 저장
+     */
+    public String generateAndStoreRefreshToken(User user, String userAgent){
+        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserIdAndUserAgent(user.getId(), userAgent);
+        existingToken.ifPresent(refreshTokenRepository::delete);
+
+        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
+
+        RefreshToken refreshTokenEntity=new RefreshToken(user.getId(), refreshToken , userAgent);
+        refreshTokenRepository.save(refreshTokenEntity);
+        return refreshToken;
     }
 }
