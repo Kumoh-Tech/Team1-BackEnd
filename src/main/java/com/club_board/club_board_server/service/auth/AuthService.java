@@ -12,7 +12,6 @@ import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.mail.EmailService;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
