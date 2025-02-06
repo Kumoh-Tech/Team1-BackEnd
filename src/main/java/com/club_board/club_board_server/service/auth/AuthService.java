@@ -142,37 +142,31 @@ public class AuthService {
     Refresh-Token 검증
      */
     public String validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
-        try {
-            // DB에서 Refresh Token 확인
-            RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
-                    .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
-            // 저장된 기기와 요청 기기 정보 비교
-            if(!existingRefreshToken.getUserAgent().equals(requestUserAgent)){
-                throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
-            }
-            // Refresh Token 유효성 검사
-            tokenProvider.validToken(refreshToken, TokenType.REFRESH);
-
-            // 토큰에서 유저 ID 추출 및 유저 조회
-            Long userId = tokenProvider.getClaims(refreshToken).get("id", Long.class);
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
-
-            // Refresh Token 만료 임박 시 새로 발급
-            Claims claims = tokenProvider.getClaims(refreshToken);
-            long remainingTime = claims.getExpiration().getTime() - System.currentTimeMillis();
-            if (remainingTime < Duration.ofDays(1).toMillis()) { // 1일 이하 남은 경우
-                String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-                tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
-                // Cookie에 새 Refresh Token 저장
-                Cookie cookie = setCookie(newRefreshToken);
-                response.addCookie(cookie);
-            }
-            // Access Token 발급
-            return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
-        } catch (BusinessException be) {
-            throw be;
+        // DB에서 Refresh Token 확인
+        RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
+        // 저장된 기기와 요청 기기 정보 비교
+        if(!existingRefreshToken.getUserAgent().equals(requestUserAgent)){
+            throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
         }
+        // Refresh Token 유효성 검사
+        tokenProvider.validToken(refreshToken, TokenType.REFRESH);
+
+        // 토큰에서 유저 ID 추출 및 유저 조회
+        Long userId = tokenProvider.getClaims(refreshToken).get("id", Long.class);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+
+        // Refresh Token 만료 임박 시 새로 발급
+        refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
+        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
+        tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
+            // Cookie에 새 Refresh Token 저장
+        Cookie cookie = setCookie(newRefreshToken);
+        response.addCookie(cookie);
+
+        // Access Token 발급
+        return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
     }
 
     /*
