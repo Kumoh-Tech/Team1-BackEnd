@@ -156,11 +156,9 @@ public class BookAdminService {
     public void correctReturnStatus(Long reservationId, ReservationStatus status) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
-
         if (!isReturned(status)) {
             throw new BusinessException(ExceptionType.UNSUPPORTED_STATUS_CHANGE);
         }
-
         reservation.setStatus(status);
     }
 
