@@ -2,7 +2,7 @@ name: CI/CD to EC2
 
 on:
   push:
-    branches: [ "dev", "ci-cd", "cors" ]
+    branches: [ "dev", "ci-cd", "cors", "RefreshTest" ]
 
 jobs:
   build-deploy:
