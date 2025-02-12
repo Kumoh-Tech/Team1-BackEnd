@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,6 +24,13 @@ public class GlobalExceptionHandler {
         ExceptionType exceptionType = e.getExceptionType();
         return ResponseEntity.status(exceptionType.getStatus())
                 .body(ResponseUtil.createFailureResponse(exceptionType));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ResponseBody<Void>> authorizationDeniedException(AuthorizationDeniedException e){
+        return ResponseEntity
+                .status(ExceptionType.AUTHORIZATION_DENIED.getStatus())
+                .body(ResponseUtil.createFailureResponse(ExceptionType.AUTHORIZATION_DENIED));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -56,6 +64,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseBody<Void>> exception(Exception e){
+        e.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseUtil.createFailureResponse(ExceptionType.UNEXPECTED_SERVER_ERROR));

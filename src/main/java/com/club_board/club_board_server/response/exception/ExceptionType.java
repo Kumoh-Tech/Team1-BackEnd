@@ -14,6 +14,7 @@ public enum ExceptionType {
     ESSENTIAL_FIELD_MISSING_ERROR(NO_CONTENT , "C003","필수적인 필드 부재"),
     INVALID_JSON_FORMAT(BAD_REQUEST, "C004", "잘못된 JSON 데이터 형식"),
 
+
     //User
     USER_ALREADY_EXIST(HttpStatus.CONFLICT,"U001","이미 존재하는 회원입니다."),
     USER_NOT_FOUND(NOT_FOUND,"U002","존재하지 않는 유저입니다."),
@@ -36,7 +37,8 @@ public enum ExceptionType {
     EXPIRED_ACCESS_TOKEN(UNAUTHORIZED,"A007","Access Token 만료"),
     INVALID_REFRESH_TOKEN(UNAUTHORIZED,"A008","Refresh Token 이 유효하지 않습니다."),
     NOT_FOUND_REFRESH_TOKEN(UNAUTHORIZED,"A009","Refresh Token 이 존재하지 않습니다."),
-    EXPIRED_REFRESH_TOKEN(UNAUTHORIZED,"A0010","Refresh Token Token 만료"),
+    EXPIRED_REFRESH_TOKEN(UNAUTHORIZED,"A010","Refresh Token Token 만료"),
+    AUTHORIZATION_DENIED(FORBIDDEN, "A011", "권한이 없습니다."),
 
     // File
     FILE_NOT_FOUND(NOT_FOUND, "F001", "파일이 존재하지 않습니다."),
