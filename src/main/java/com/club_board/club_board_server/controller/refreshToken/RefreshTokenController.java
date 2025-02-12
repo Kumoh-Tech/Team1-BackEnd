@@ -22,6 +22,7 @@ public class RefreshTokenController {
     public ResponseEntity<?> refreshToken(@CookieValue(value="refresh-token", required = false) String refreshToken,
                                           @RequestHeader(value = "User-Agent", required = false) String requestUserAgent,
                                           HttpServletResponse response) {
+        log.info("accessToken 재발급 요청: refreshToken={}", refreshToken);
         if (refreshToken == null) {
             throw new BusinessException(ExceptionType.NOT_FOUND_REFRESH_TOKEN);
         }
