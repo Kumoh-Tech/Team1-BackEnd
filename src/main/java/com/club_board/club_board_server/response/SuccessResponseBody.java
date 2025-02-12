@@ -8,8 +8,10 @@ public final class SuccessResponseBody<T> extends ResponseBody<T> {  // 더 이�
     private final T data;  // 성공 응답이 생성된 후에는 그 응답의 데이터가 변경되지 않아야 하는 경우가 많다.
     public SuccessResponseBody(){
         data=null;
+        this.setSuccess(true);
     }
     public SuccessResponseBody(T result){
         this.data=result;
+        this.setSuccess(true);
     }
 }
