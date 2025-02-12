@@ -52,6 +52,7 @@ public enum ExceptionType {
     LOCK_TIMEOUT(CONFLICT,"B005","락 대기 시간이 초과되었습니다."),
     BOOK_ALREADY_LOAN(BAD_REQUEST, "B006", "책이 이미 대출 중입니다."),
     UNSUPPORTED_STATUS_CHANGE(BAD_REQUEST, "B007", "현재 상태에서 변경 하려는 상태는 지원하지 않는 상태 변경입니다."),
+    YOU_ALREADY_RESERVATION(BAD_REQUEST,"B007","이미 예약 신청중인 도서입니다.");
     ;
 
     private final HttpStatus status;

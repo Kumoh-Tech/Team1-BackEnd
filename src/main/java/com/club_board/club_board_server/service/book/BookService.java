@@ -100,7 +100,10 @@ public class BookService {
         if (user.isOverdue()) {
             throw new BusinessException(ExceptionType.USER_OVERDUE);
         }
-
+        // 유저가 이미 책을 대여중인지 확인
+        if(reservationRepository.findReservationByBookAndUserId(bookId, userId).isPresent()){
+            throw new BusinessException(ExceptionType.YOU_ALREADY_RESERVATION);
+        }
         Reservation reservation=new Reservation(user,book);
         reservationRepository.save(reservation);
 
@@ -116,7 +119,6 @@ public class BookService {
     public void cancelReservation(Long bookId,Long userId){
         Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
-
         Reservation reservation=reservationRepository.findReservedReservationByBookAndUser(bookId,userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
