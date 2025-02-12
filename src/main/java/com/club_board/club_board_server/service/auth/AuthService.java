@@ -202,7 +202,7 @@ public class AuthService {
         Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserIdAndUserAgent(user.getId(), userAgent);
         existingToken.ifPresent(refreshTokenRepository::delete);
 
-        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
+        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofMinutes(1));
 
         RefreshToken refreshTokenEntity=new RefreshToken(user.getId(), refreshToken , userAgent);
         refreshTokenRepository.save(refreshTokenEntity);
