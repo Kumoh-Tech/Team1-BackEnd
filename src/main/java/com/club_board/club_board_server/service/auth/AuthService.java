@@ -158,7 +158,7 @@ public class AuthService {
 
         // Refresh Token 만료 임박 시 새로 발급
         refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
-        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
+        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(1));
         tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
             // Cookie에 새 Refresh Token 저장
         Cookie cookie = setCookie(newRefreshToken);
