@@ -175,7 +175,7 @@ public class AuthService {
         String cookieName="refresh-token";
         Cookie cookie=new Cookie(cookieName, refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(60);
         return cookie;
