@@ -83,7 +83,7 @@ jobs:
 
             echo "=== Run new container ===" >> $DEPLOY_LOG_PATH
             docker run -d \
-              -p 80:8080 \
+              -p 443:8080 \
               --name $CONTAINER_NAME \
               ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest >> $DEPLOY_LOG_PATH
 
