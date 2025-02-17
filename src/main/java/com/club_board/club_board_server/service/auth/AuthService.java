@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -67,8 +68,7 @@ public class AuthService {
             //토큰 발급
             String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
-            Cookie cookie=setCookie(refreshToken);
-            response.addCookie(cookie);
+            addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
             return new UserLoginResponse(message,accessToken);
         }
@@ -161,9 +161,7 @@ public class AuthService {
         String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofMinutes(1));
         tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
             // Cookie에 새 Refresh Token 저장
-        Cookie cookie = setCookie(newRefreshToken);
-        response.addCookie(cookie);
-
+        addRefreshTokenCookie(response,newRefreshToken);
         // Access Token 발급
         return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
     }
@@ -171,14 +169,15 @@ public class AuthService {
     /*
     refresh-token 쿠키 설정
      */
-    public Cookie setCookie(String refreshToken){
-        String cookieName="refresh-token";
-        Cookie cookie=new Cookie(cookieName, refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60);
-        return cookie;
+    public void addRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from("refresh-token", refreshToken)
+                .httpOnly(true)
+                .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
+                .path("/")
+                .maxAge(60 * 60 * 24 * 7)  // 7일
+                .sameSite("None")      // SameSite를 None으로 설정
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     /*
