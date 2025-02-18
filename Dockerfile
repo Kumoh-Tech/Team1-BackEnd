@@ -24,6 +24,13 @@ RUN addgroup --system javauser && adduser --system --group javauser
 # Set ownership and switch to non-root user
 COPY --from=builder --chown=javauser:javauser /app/build/libs/club-board_server-0.0.1-SNAPSHOT.jar app.jar
 
+# 🛠️ root 권한으로 전환
+USER root
+
+# wget 설치 (Debian 기반)
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# 🛠️ 다시 비-루트 사용자로 전환
 USER javauser
 
 # Configure JVM options
