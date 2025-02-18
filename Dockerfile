@@ -29,12 +29,9 @@ USER javauser
 # Configure JVM options
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# curl 설치 (Debian 기반 이미지)
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-
-# Health check
+# Health check (wget 사용)
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:80/actuator/health || exit 1
+  CMD wget --spider -q http://localhost:80/actuator/health || exit 1
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
