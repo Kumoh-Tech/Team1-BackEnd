@@ -27,7 +27,7 @@ COPY --from=builder --chown=javauser:javauser /app/build/libs/club-board_server-
 # 🛠️ root 권한으로 전환
 USER root
 
-# wget 설치 (Debian 기반)
+# curl 설치
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # 🛠️ 다시 비-루트 사용자로 전환
@@ -36,9 +36,9 @@ USER javauser
 # Configure JVM options
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Health check (wget 사용)
+# Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -v http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
