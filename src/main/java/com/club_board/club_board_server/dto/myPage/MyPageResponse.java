@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class MyPageResponse {
-    //TODO: 역할을 DTO로 전달 OR 토큰으로 전달?
+    private String role;
     private String username;
     private String name;
     private String department;
@@ -17,8 +17,9 @@ public class MyPageResponse {
     private boolean phonePublic;
 
     @Builder
-    public MyPageResponse(String username,String name, String department, String studentId, int grade, String phoneNumber
+    public MyPageResponse(String role,String username,String name, String department, String studentId, int grade, String phoneNumber
     , boolean departmentPublic, boolean studentIdPublic, boolean gradePublic, boolean phonePublic) {
+        this.role = role;
         this.username = username;
         this.name=name;
         this.department=department;

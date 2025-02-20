@@ -22,6 +22,7 @@ public class MyPageService {
         User user=userRepository.findById(userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
         return MyPageResponse.builder()
+                .role(user.getRole().getDisplayName())
                 .username(user.getUsername())
                 .name(user.getName())
                 .department(user.getDepartment())
