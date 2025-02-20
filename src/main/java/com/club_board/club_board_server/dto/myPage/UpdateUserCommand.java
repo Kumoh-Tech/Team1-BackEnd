@@ -1,6 +1,4 @@
-// UpdateUserCommand.java
 package com.club_board.club_board_server.dto.myPage;
-
 import lombok.Builder;
 import lombok.Getter;
 
