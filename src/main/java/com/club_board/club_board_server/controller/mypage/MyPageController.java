@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -18,19 +19,18 @@ public class MyPageController {
     private final MyPageService myPageService;
 
     @GetMapping("/myPage/{userId}")
-    @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.credentials,#userId)")
-    public ResponseEntity<ResponseBody<MyPageResponse>> showMyPage(@PathVariable Long userId){
+    @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.getCredentials(), #userId)")
+    public ResponseEntity<ResponseBody<MyPageResponse>> showMyPage(@PathVariable("userId") @P("userId") Long userId){
         MyPageResponse myPageResponse=myPageService.getMyPage(userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(myPageResponse));
     }
 
     @PatchMapping("/myPage/{userId}")
-    @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.credentials,#userId)")
-    public ResponseEntity<ResponseBody<String>> updateMyPage(@PathVariable Long userId, @RequestBody UpdateMyPageRequest updateMyPageRequest){
+    @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.getCredentials(), #userId)")
+    public ResponseEntity<ResponseBody<String>> updateMyPage(@PathVariable("userId") @P("userId") Long userId, @RequestBody UpdateMyPageRequest updateMyPageRequest){
         myPageService.updateMyPage(userId,updateMyPageRequest);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("유저 정보 업데이트 성공"));
     }
 }
-
 
 
