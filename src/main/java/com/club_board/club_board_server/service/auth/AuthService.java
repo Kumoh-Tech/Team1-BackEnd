@@ -66,7 +66,7 @@ public class AuthService {
             User user=userDetails.getUser();
             String userAgent=request.getHeader("User-Agent");
             //토큰 발급
-            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
+            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofMinutes(1));
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
             addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
@@ -163,7 +163,7 @@ public class AuthService {
             // Cookie에 새 Refresh Token 저장
         addRefreshTokenCookie(response,newRefreshToken);
         // Access Token 발급
-        return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
+        return tokenProvider.generateAccessToken(user, Duration.ofMinutes(1));
     }
 
     /*
@@ -174,7 +174,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
                 .path("/")
-                .maxAge(60 * 60 * 24 * 7)  // 7일
+                .maxAge(60 )
                 .sameSite("None")      // SameSite를 None으로 설정
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
