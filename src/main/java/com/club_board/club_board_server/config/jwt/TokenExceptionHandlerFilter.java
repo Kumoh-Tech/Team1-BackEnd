@@ -35,6 +35,8 @@ public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OnceP
         response.setCharacterEncoding("UTF-8"); // HttpServletResponse: ISO-8859-1 인코딩 사용하기 때문에 한글 출력을 위해 UTF-8 설정
         ResponseBody<Void> body= ResponseUtil.createFailureResponse(exceptionType);
         writeErrorResponse(response,body);
+        if(!response.isCommitted())
+            response.flushBuffer();
     }
     private void writeErrorResponse(HttpServletResponse response, ResponseBody<Void> body) throws IOException{
         ObjectMapper objectMapper = new ObjectMapper(); // Jackson ObjectMapper 인스턴스 생성
