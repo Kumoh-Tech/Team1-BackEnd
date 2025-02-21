@@ -56,7 +56,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private String getAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        log.info("받은 Authorization 헤더 값: {}", bearerToken);
         if (bearerToken != null && bearerToken.startsWith(TOKEN_PREFIX)) {
             return bearerToken.substring(TOKEN_PREFIX.length());
         }
