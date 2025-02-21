@@ -66,7 +66,7 @@ public class AuthService {
             User user=userDetails.getUser();
             String userAgent=request.getHeader("User-Agent");
             //토큰 발급
-            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofMinutes(1));
+            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofSeconds(30));
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
             addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
@@ -163,7 +163,7 @@ public class AuthService {
             // Cookie에 새 Refresh Token 저장
         addRefreshTokenCookie(response,newRefreshToken);
         // Access Token 발급
-        return tokenProvider.generateAccessToken(user, Duration.ofMinutes(1));
+        return tokenProvider.generateAccessToken(user, Duration.ofSeconds(30));
     }
 
     /*
