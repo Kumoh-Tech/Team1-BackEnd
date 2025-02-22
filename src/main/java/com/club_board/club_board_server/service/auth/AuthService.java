@@ -140,6 +140,7 @@ public class AuthService {
     /*
     Refresh-Token 검증
      */
+    @Transactional
     public String validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
         // DB에서 Refresh Token 확인
         RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
