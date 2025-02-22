@@ -198,6 +198,7 @@ public class AuthService {
     /**
      *  로그인 시 Refresh Token 기기별로 저장
      */
+    @Transactional
     public String generateAndStoreRefreshToken(User user, String userAgent){
         Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserIdAndUserAgent(user.getId(), userAgent);
         existingToken.ifPresent(refreshTokenRepository::delete);
