@@ -41,6 +41,9 @@ public class S3Service {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
+    private final static int PUT_REQUEST_DURATION_OF_MINUTES = 60;
+    private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
+
     public PresignedUploadUrlResponse generateUploadUrl(PresignedUploadUrlRequest request, Long userId) {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
@@ -59,7 +62,7 @@ public class S3Service {
                     .build();
 
             PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
                     .putObjectRequest(putObjectRequest)
                     .build();
 
@@ -97,7 +100,7 @@ public class S3Service {
                     .build();
 
             GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(GET_REQUEST_DURATION_OF_MINUTES))
                     .getObjectRequest(getObjectRequest)
                     .build();
 
@@ -131,7 +134,7 @@ public class S3Service {
                     .build();
 
             PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
                     .putObjectRequest(putObjectRequest)
                     .build();
 
@@ -169,7 +172,7 @@ public class S3Service {
                     .build();
 
             GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(GET_REQUEST_DURATION_OF_MINUTES))
                     .getObjectRequest(getObjectRequest)
                     .build();
 
