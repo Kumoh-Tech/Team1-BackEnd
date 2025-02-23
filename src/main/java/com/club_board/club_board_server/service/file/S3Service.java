@@ -155,6 +155,41 @@ public class S3Service {
         );
     }
 
+    public PresignedUploadUrlResponse generateBookImageUpdateUrl(PresignedUploadUrlRequest request, Long bookImageId) {
+        if (!request.getContentType().startsWith("image/")) {
+            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
+        }
+
+        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+
+        try (
+                S3Presigner s3Presigner = S3Presigner.builder()
+                        .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                        .region(Region.AP_NORTHEAST_2)
+                        .build()
+        ) {
+            String objectName = bookImageService.getFileName(bookImageId);
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(objectName)
+                    .contentType(request.getContentType())
+                    .build();
+
+            PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
+                    .putObjectRequest(putObjectRequest)
+                    .build();
+
+            PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putObjectPresignRequest);
+
+            return PresignedUploadUrlResponse.builder()
+                    .url(presignedPutObjectRequest.url().toString())
+                    .fileId(bookImageId)
+                    .build();
+        }
+    }
+
     public PresignedDownloadUrlResponse generateBookImageDownloadUrl(Long bookImageId) {
         String objectName = bookImageService.getFileName(bookImageId);
 

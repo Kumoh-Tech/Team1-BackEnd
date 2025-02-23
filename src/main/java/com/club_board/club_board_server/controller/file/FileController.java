@@ -49,6 +49,16 @@ public class FileController {
                 .body(ResponseUtil.createSuccessResponse(response));
     }
 
+    @PostMapping("/bookImage/update-url")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generateBookImageUpdateUrl(
+            @RequestBody @Valid PresignedUploadUrlRequest request,
+            @RequestParam Long bookImageId
+    ) {
+        PresignedUploadUrlResponse response = s3Service.generateBookImageUpdateUrl(request, bookImageId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
     @GetMapping("/bookImage/download-url")
     public ResponseEntity<ResponseBody<PresignedDownloadUrlResponse>> generateBookImageDownloadUrl(@RequestParam Long bookImageId) {
         PresignedDownloadUrlResponse response = s3Service.generateBookImageDownloadUrl(bookImageId);
