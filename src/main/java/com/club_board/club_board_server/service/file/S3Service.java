@@ -186,8 +186,6 @@ public class S3Service {
 
     public void deleteBookImage(BookImage bookImage) {
         this.deleteObject(bookImage.getUrl());
-
-        bookImageService.deleteBookImage(bookImage);
     }
 
     private void deleteObject(String url) {
@@ -207,4 +205,5 @@ public class S3Service {
             s3.deleteObject(deleteObjectsRequest);
         }
     }
+
 }

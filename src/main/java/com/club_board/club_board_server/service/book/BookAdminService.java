@@ -79,6 +79,10 @@ public class BookAdminService {
         BookImage savedBookImage = bookImageRepository.findByBook(savedBook)
                 .orElseThrow(() -> new BusinessException(ExceptionType.FILE_NOT_FOUND));
 
+        reservationRepository.findByBook(savedBook).ifPresent(reservation -> {
+            throw new BusinessException(ExceptionType.DELETE_RESTRICTED_BY_RESERVATIONS);
+        });
+
         s3Service.deleteBookImage(savedBookImage);
 
         bookRepository.delete(savedBook);

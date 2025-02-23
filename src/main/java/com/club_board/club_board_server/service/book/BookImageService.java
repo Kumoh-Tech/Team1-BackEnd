@@ -23,9 +23,4 @@ public class BookImageService {
                 .orElseThrow(() -> new BusinessException(ExceptionType.FILE_NOT_FOUND))
                 .getUrl();
     }
-
-    @Transactional
-    public void deleteBookImage(BookImage bookImage) {
-        bookImageRepository.delete(bookImage);
-    }
 }

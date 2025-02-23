@@ -53,8 +53,9 @@ public enum ExceptionType {
     CONCURRENCY_CONFLICT(CONFLICT,"B004","동시에 요청이 처리되어 충돌이 발생했습니다."),
     LOCK_TIMEOUT(CONFLICT,"B005","락 대기 시간이 초과되었습니다."),
     BOOK_ALREADY_LOAN(BAD_REQUEST, "B006", "책이 이미 대출 중입니다."),
-    UNSUPPORTED_STATUS_CHANGE(BAD_REQUEST, "B007", "현재 상태에서 변경 하려는 상태는 지원하지 않는 상태 변경입니다."),
-    YOU_ALREADY_RESERVATION(BAD_REQUEST,"B007","이미 예약 신청중인 도서입니다.");
+    YOU_ALREADY_RESERVATION(BAD_REQUEST, "B007", "이미 예약 신청중인 도서입니다."),
+    UNSUPPORTED_STATUS_CHANGE(BAD_REQUEST, "B008", "현재 상태에서 변경 하려는 상태는 지원하지 않는 상태 변경입니다."),
+    DELETE_RESTRICTED_BY_RESERVATIONS(CONFLICT, "B009", "예약이 존재하여 도서 삭제가 불가능합니다."),
     ;
 
     private final HttpStatus status;
