@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.dto.myPage;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 
@@ -17,7 +18,7 @@ public class UpdateMyPageRequest {
     @NotBlank
     private String department;
 
-    @NotBlank
+    @NotNull
     private int grade;
 
     @NotBlank
@@ -25,15 +26,15 @@ public class UpdateMyPageRequest {
             regexp = "^\\d{3}-\\d{4}-\\d{4}$")
     private String phoneNumber;
 
-    @NotBlank
+    @NotNull
     private Boolean departmentPublic;
 
-    @NotBlank
+    @NotNull
     private Boolean studentIdPublic;
 
-    @NotBlank
+    @NotNull
     private Boolean gradePublic;
 
-    @NotBlank
+    @NotNull
     private Boolean phonePublic;
 }

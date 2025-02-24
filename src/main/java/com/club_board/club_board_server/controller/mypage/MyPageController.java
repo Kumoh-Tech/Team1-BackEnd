@@ -4,6 +4,7 @@ import com.club_board.club_board_server.dto.myPage.UpdateMyPageRequest;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.myPage.MyPageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class MyPageController {
 
     @PatchMapping("/myPage/{userId}")
     @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.getCredentials(), #userId)")
-    public ResponseEntity<ResponseBody<String>> updateMyPage(@PathVariable("userId") @P("userId") Long userId, @RequestBody UpdateMyPageRequest updateMyPageRequest){
+    public ResponseEntity<ResponseBody<String>> updateMyPage(@PathVariable("userId") @P("userId") Long userId, @Valid @RequestBody UpdateMyPageRequest updateMyPageRequest){
         myPageService.updateMyPage(userId,updateMyPageRequest);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("유저 정보 업데이트 성공"));
     }
