@@ -37,9 +37,7 @@ jobs:
       - name: Make test application.yml
         run: |
           mkdir -p src/main/resources
-          cd src/main/resources
-          touch ./application.yml
-          echo "${{ secrets.TEST_APPLICATION_YML }}" > ./application.yml
+          echo "${{ secrets.TEST_APPLICATION_YML }}" > src/main/resources/application.yml
 
       # (3-2) Gradle 빌드
       - name: Build with Gradle
@@ -50,7 +48,7 @@ jobs:
       # (3-3) 서버 실행용 application.yml 파일 생성
       - name: Make production application.yml
         run: |
-          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
 
       # (4) ECR 로그인 (도커 로그인)
       - name: Login to Amazon ECR
