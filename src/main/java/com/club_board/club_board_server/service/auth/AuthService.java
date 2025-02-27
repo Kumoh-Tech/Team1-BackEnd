@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -65,10 +66,9 @@ public class AuthService {
             User user=userDetails.getUser();
             String userAgent=request.getHeader("User-Agent");
             //토큰 발급
-            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofHours(1));
+            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofMinutes(30));
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
-            Cookie cookie=setCookie(refreshToken);
-            response.addCookie(cookie);
+            addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
             return new UserLoginResponse(message,accessToken);
         }
@@ -140,6 +140,7 @@ public class AuthService {
     /*
     Refresh-Token 검증
      */
+    @Transactional
     public String validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
         // DB에서 Refresh Token 확인
         RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
@@ -158,27 +159,26 @@ public class AuthService {
 
         // Refresh Token 만료 임박 시 새로 발급
         refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
-        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofMinutes(1));
+        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofMinutes(10));
         tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
             // Cookie에 새 Refresh Token 저장
-        Cookie cookie = setCookie(newRefreshToken);
-        response.addCookie(cookie);
-
+        addRefreshTokenCookie(response,newRefreshToken);
         // Access Token 발급
-        return tokenProvider.generateAccessToken(user, Duration.ofHours(1));
+        return tokenProvider.generateAccessToken(user, Duration.ofMinutes(30));
     }
 
     /*
     refresh-token 쿠키 설정
      */
-    public Cookie setCookie(String refreshToken){
-        String cookieName="refresh-token";
-        Cookie cookie=new Cookie(cookieName, refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60*60*24*7);
-        return cookie;
+    public void addRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from("refresh-token", refreshToken)
+                .httpOnly(true)
+                .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
+                .path("/")
+                .maxAge(60*60)
+                .sameSite("None")      // SameSite를 None으로 설정
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     /*
@@ -198,11 +198,12 @@ public class AuthService {
     /**
      *  로그인 시 Refresh Token 기기별로 저장
      */
+    @Transactional
     public String generateAndStoreRefreshToken(User user, String userAgent){
         Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserIdAndUserAgent(user.getId(), userAgent);
         existingToken.ifPresent(refreshTokenRepository::delete);
 
-        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofMinutes(1));
+        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofMinutes(10));
 
         RefreshToken refreshTokenEntity=new RefreshToken(user.getId(), refreshToken , userAgent);
         refreshTokenRepository.save(refreshTokenEntity);

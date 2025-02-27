@@ -33,13 +33,20 @@ public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OnceP
         response.setStatus(exceptionType.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8"); // HttpServletResponse: ISO-8859-1 인코딩 사용하기 때문에 한글 출력을 위해 UTF-8 설정
+
+        // CORS 관련 헤더를 명시적으로 추가
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+        response.setHeader("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
+        
         ResponseBody<Void> body= ResponseUtil.createFailureResponse(exceptionType);
         writeErrorResponse(response,body);
+
     }
     private void writeErrorResponse(HttpServletResponse response, ResponseBody<Void> body) throws IOException{
         ObjectMapper objectMapper = new ObjectMapper(); // Jackson ObjectMapper 인스턴스 생성
         String json = objectMapper.writeValueAsString(body);  // ResponseBody 객체를 JSON 문자열로 직렬화
-
         try (PrintWriter writer = response.getWriter()) { // PrintWriter 자원을 안전하게 닫기 위해 try-with-resource 사용
             writer.write(json);
             writer.flush();
