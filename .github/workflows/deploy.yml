@@ -9,6 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # (0) Github Action IP 가져오기
+      - name: Get Github Action IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+    
       # (1) 리포지토리 체크아웃
       - name: Check out code
         uses: actions/checkout@v2
@@ -21,6 +26,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # (3) Build
       # (3-1) application.yml 파일 생성
       - name: Make application.yml
         run: |
@@ -29,11 +35,29 @@ jobs:
           touch ./application.yml
           echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
 
-      # (3-2) Gradle 빌드 (테스트 제외)
+      # (3-2) RDS 보안 그룹에 Github Action IP 추가
+      - name: Add Github Actions IP to Security group
+        run: |
+          aws rds authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32    
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+
+      # (3-3) Gradle 빌드
       - name: Build with Gradle
         run: |
           chmod +x gradlew
           ./gradlew clean build
+
+      # (3-4) RDS 보안 그룹에 Github Action IP 제거
+      - name: Remove Github Actions IP from security group
+        run: |
+          aws rds revoke-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-northeast-2
 
       # (4) ECR 로그인 (도커 로그인)
       - name: Login to Amazon ECR
