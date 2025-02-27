@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -39,6 +40,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ExceptionType.BINDING_ERROR.getStatus())
                 .body(ResponseUtil.createFailureResponse(ExceptionType.BINDING_ERROR, customMessage));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ResponseBody<Void>> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        return ResponseEntity
+                .status(ExceptionType.ESSENTIAL_FIELD_MISSING_ERROR.getStatus())
+                .body(ResponseUtil.createFailureResponse(ExceptionType.ESSENTIAL_FIELD_MISSING_ERROR));
     }
 
     @ExceptionHandler(PessimisticLockException.class)

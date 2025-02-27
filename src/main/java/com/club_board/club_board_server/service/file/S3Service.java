@@ -41,6 +41,9 @@ public class S3Service {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
+    private final static int PUT_REQUEST_DURATION_OF_MINUTES = 60;
+    private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
+
     public PresignedUploadUrlResponse generateUploadUrl(PresignedUploadUrlRequest request, Long userId) {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
@@ -59,7 +62,7 @@ public class S3Service {
                     .build();
 
             PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
                     .putObjectRequest(putObjectRequest)
                     .build();
 
@@ -97,7 +100,7 @@ public class S3Service {
                     .build();
 
             GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(GET_REQUEST_DURATION_OF_MINUTES))
                     .getObjectRequest(getObjectRequest)
                     .build();
 
@@ -131,7 +134,7 @@ public class S3Service {
                     .build();
 
             PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
                     .putObjectRequest(putObjectRequest)
                     .build();
 
@@ -152,6 +155,41 @@ public class S3Service {
         );
     }
 
+    public PresignedUploadUrlResponse generateBookImageUpdateUrl(PresignedUploadUrlRequest request, Long bookImageId) {
+        if (!request.getContentType().startsWith("image/")) {
+            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
+        }
+
+        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+
+        try (
+                S3Presigner s3Presigner = S3Presigner.builder()
+                        .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                        .region(Region.AP_NORTHEAST_2)
+                        .build()
+        ) {
+            String objectName = bookImageService.getFileName(bookImageId);
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(objectName)
+                    .contentType(request.getContentType())
+                    .build();
+
+            PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
+                    .putObjectRequest(putObjectRequest)
+                    .build();
+
+            PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putObjectPresignRequest);
+
+            return PresignedUploadUrlResponse.builder()
+                    .url(presignedPutObjectRequest.url().toString())
+                    .fileId(bookImageId)
+                    .build();
+        }
+    }
+
     public PresignedDownloadUrlResponse generateBookImageDownloadUrl(Long bookImageId) {
         String objectName = bookImageService.getFileName(bookImageId);
 
@@ -169,7 +207,7 @@ public class S3Service {
                     .build();
 
             GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(60))
+                    .signatureDuration(Duration.ofMinutes(GET_REQUEST_DURATION_OF_MINUTES))
                     .getObjectRequest(getObjectRequest)
                     .build();
 
@@ -183,8 +221,6 @@ public class S3Service {
 
     public void deleteBookImage(BookImage bookImage) {
         this.deleteObject(bookImage.getUrl());
-
-        bookImageService.deleteBookImage(bookImage);
     }
 
     private void deleteObject(String url) {
@@ -204,4 +240,5 @@ public class S3Service {
             s3.deleteObject(deleteObjectsRequest);
         }
     }
+
 }
