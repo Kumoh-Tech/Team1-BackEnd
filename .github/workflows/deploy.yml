@@ -8,12 +8,19 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_pass
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h 127.0.0.1 --silent" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
-      # (0) Github Action IP 가져오기
-      - name: Get Github Action IP
-        id: ip
-        uses: haythem/public-ip@v1.2
-    
       # (1) 리포지토리 체크아웃
       - name: Check out code
         uses: actions/checkout@v2
@@ -26,38 +33,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # (3) Build
-      # (3-1) application.yml 파일 생성
-      - name: Make application.yml
+      # (3-1) test application.yml 파일 생성
+      - name: Make test application.yml
         run: |
           mkdir -p src/main/resources
           cd src/main/resources
           touch ./application.yml
-          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+          echo "${{ secrets.TEST_APPLICATION_YML }}" > ./application.yml
 
-      # (3-2) RDS 보안 그룹에 Github Action IP 추가
-      - name: Add Github Actions IP to Security group
-        run: |
-          aws ec2 authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 3306 --cidr ${{ steps.ip.outputs.ipv4 }}/32    
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-
-      # (3-3) Gradle 빌드
+      # (3-2) Gradle 빌드
       - name: Build with Gradle
         run: |
           chmod +x gradlew
           ./gradlew clean build
 
-      # (3-4) RDS 보안 그룹에 Github Action IP 제거
-      - name: Remove Github Actions IP from security group
+      # (3-3) 서버 실행용 application.yml 파일 생성
+      - name: Make production application.yml
         run: |
-          aws ec2 revoke-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 3306 --cidr ${{ steps.ip.outputs.ipv4 }}/32
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-northeast-2
+          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
 
       # (4) ECR 로그인 (도커 로그인)
       - name: Login to Amazon ECR
