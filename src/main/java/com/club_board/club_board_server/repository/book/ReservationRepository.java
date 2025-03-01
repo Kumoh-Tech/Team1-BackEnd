@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.repository.book;
 
+import com.club_board.club_board_server.domain.book.Book;
 import com.club_board.club_board_server.domain.book.Reservation;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookLoan;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookReservation;
@@ -50,4 +51,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r WHERE r.book.id=:bookId AND (r.status='BORROWING' OR r.status='OVERDUE')")
     List<Reservation> findByBookAndBorrowingStatus(Long bookId);
+
+    Optional<Reservation> findByBook(Book savedBook);
 }

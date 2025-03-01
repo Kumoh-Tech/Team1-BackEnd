@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.controller.file;
 
+import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.dto.file.request.PresignedUploadUrlRequest;
 import com.club_board.club_board_server.dto.file.response.PresignedDownloadUrlResponse;
 import com.club_board.club_board_server.dto.file.response.PresignedUploadUrlResponse;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +25,10 @@ public class FileController {
     @PostMapping("/upload-url")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generateUploadUrl(
-            @RequestBody @Valid PresignedUploadUrlRequest request
+            @RequestBody @Valid PresignedUploadUrlRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long userId = 1L;
-        PresignedUploadUrlResponse response = s3Service.generateUploadUrl(request, userId);
+        PresignedUploadUrlResponse response = s3Service.generateUploadUrl(request, userDetails.getUser().getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseUtil.createSuccessResponse(response));
     }
@@ -45,6 +47,16 @@ public class FileController {
         PresignedUploadUrlResponse response = s3Service.generateBookImageUploadUrl(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @PostMapping("/bookImage/update-url")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generateBookImageUpdateUrl(
+            @RequestBody @Valid PresignedUploadUrlRequest request,
+            @RequestParam Long bookImageId
+    ) {
+        PresignedUploadUrlResponse response = s3Service.generateBookImageUpdateUrl(request, bookImageId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/bookImage/download-url")

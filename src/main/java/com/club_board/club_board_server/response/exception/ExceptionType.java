@@ -11,7 +11,7 @@ public enum ExceptionType {
     //common
     UNEXPECTED_SERVER_ERROR(INTERNAL_SERVER_ERROR,"C001","예상치 못한 에러 발생"),
     BINDING_ERROR(BAD_REQUEST,"C002","바인딩시 에러 발생"),
-    ESSENTIAL_FIELD_MISSING_ERROR(NO_CONTENT , "C003","필수적인 필드 부재"),
+    ESSENTIAL_FIELD_MISSING_ERROR(BAD_REQUEST , "C003","필수적인 필드 부재"),
     INVALID_JSON_FORMAT(BAD_REQUEST, "C004", "잘못된 JSON 데이터 형식"),
 
 
@@ -53,8 +53,9 @@ public enum ExceptionType {
     CONCURRENCY_CONFLICT(CONFLICT,"B004","동시에 요청이 처리되어 충돌이 발생했습니다."),
     LOCK_TIMEOUT(CONFLICT,"B005","락 대기 시간이 초과되었습니다."),
     BOOK_ALREADY_LOAN(BAD_REQUEST, "B006", "책이 이미 대출 중입니다."),
-    UNSUPPORTED_STATUS_CHANGE(BAD_REQUEST, "B007", "현재 상태에서 변경 하려는 상태는 지원하지 않는 상태 변경입니다."),
-    YOU_ALREADY_RESERVATION(BAD_REQUEST,"B007","이미 예약 신청중인 도서입니다.");
+    YOU_ALREADY_RESERVATION(BAD_REQUEST, "B007", "이미 예약 신청중인 도서입니다."),
+    UNSUPPORTED_STATUS_CHANGE(BAD_REQUEST, "B008", "현재 상태에서 변경 하려는 상태는 지원하지 않는 상태 변경입니다."),
+    DELETE_RESTRICTED_BY_RESERVATIONS(CONFLICT, "B009", "예약이 존재하여 도서 삭제가 불가능합니다."),
     ;
 
     private final HttpStatus status;

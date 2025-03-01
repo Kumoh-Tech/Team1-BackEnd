@@ -2,6 +2,7 @@ package com.club_board.club_board_server.controller.book;
 
 import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
+import com.club_board.club_board_server.dto.bookAdmin.request.UpdateBookRequest;
 import com.club_board.club_board_server.dto.bookAdmin.response.*;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
@@ -33,7 +34,7 @@ public class BookAdminController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ResponseBody<Void>> updateBook(
             @RequestParam Long bookId,
-            @Valid @RequestBody RegisterBookRequest request
+            @Valid @RequestBody UpdateBookRequest request
     ) {
         bookAdminService.updateBook(bookId, request);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
