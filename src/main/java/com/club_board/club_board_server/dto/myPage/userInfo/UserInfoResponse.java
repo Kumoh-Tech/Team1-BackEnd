@@ -1,9 +1,9 @@
-package com.club_board.club_board_server.dto.myPage;
+package com.club_board.club_board_server.dto.myPage.userInfo;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class MyPageResponse {
+public class UserInfoResponse {
     private String role;
     private String username;
     private String name;
@@ -17,7 +17,7 @@ public class MyPageResponse {
     private boolean phonePublic;
 
     @Builder
-    public MyPageResponse(String role,String username,String name, String department, String studentId, int grade, String phoneNumber
+    public UserInfoResponse(String role, String username, String name, String department, String studentId, int grade, String phoneNumber
     , boolean departmentPublic, boolean studentIdPublic, boolean gradePublic, boolean phonePublic) {
         this.role = role;
         this.username = username;

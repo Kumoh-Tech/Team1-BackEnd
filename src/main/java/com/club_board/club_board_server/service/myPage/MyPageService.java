@@ -1,8 +1,8 @@
 package com.club_board.club_board_server.service.myPage;
 import com.club_board.club_board_server.domain.user.User;
-import com.club_board.club_board_server.dto.myPage.MyPageResponse;
-import com.club_board.club_board_server.dto.myPage.UpdateMyPageRequest;
-import com.club_board.club_board_server.dto.myPage.UpdateUserCommand;
+import com.club_board.club_board_server.dto.myPage.userInfo.UserInfoResponse;
+import com.club_board.club_board_server.dto.myPage.userInfo.UpdateUserInfoRequest;
+import com.club_board.club_board_server.dto.myPage.userInfo.UpdateUserCommand;
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
@@ -18,10 +18,10 @@ import org.springframework.stereotype.Service;
 public class MyPageService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    public MyPageResponse getMyPage(Long userId){
+    public UserInfoResponse getMyPage(Long userId){
         User user=userRepository.findById(userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
-        return MyPageResponse.builder()
+        return UserInfoResponse.builder()
                 .role(user.getRole().getDisplayName())
                 .username(user.getUsername())
                 .name(user.getName())
@@ -37,22 +37,22 @@ public class MyPageService {
     }
 
     @Transactional
-    public void updateMyPage(Long userId, UpdateMyPageRequest updateMyPageRequest){
+    public void updateMyPage(Long userId, UpdateUserInfoRequest updateUserInfoRequest){
         User user=userRepository.findById(userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
-        if(!passwordEncoder.matches(updateMyPageRequest.getPrePassword(), user.getPassword())){
+        if(!passwordEncoder.matches(updateUserInfoRequest.getPrePassword(), user.getPassword())){
             throw new BusinessException(ExceptionType.NOT_CORRECT_PASSWORD);
         }
-        String encodePassword=passwordEncoder.encode(updateMyPageRequest.getNewPassword());
+        String encodePassword=passwordEncoder.encode(updateUserInfoRequest.getNewPassword());
         UpdateUserCommand command = UpdateUserCommand.builder()
                 .password(encodePassword)
-                .department(updateMyPageRequest.getDepartment())
-                .grade(updateMyPageRequest.getGrade())
-                .phoneNumber(updateMyPageRequest.getPhoneNumber())
-                .departmentPublic(updateMyPageRequest.getDepartmentPublic())
-                .gradePublic(updateMyPageRequest.getGradePublic())
-                .studentIdPublic(updateMyPageRequest.getStudentIdPublic())
-                .phonePublic(updateMyPageRequest.getPhonePublic())
+                .department(updateUserInfoRequest.getDepartment())
+                .grade(updateUserInfoRequest.getGrade())
+                .phoneNumber(updateUserInfoRequest.getPhoneNumber())
+                .departmentPublic(updateUserInfoRequest.getDepartmentPublic())
+                .gradePublic(updateUserInfoRequest.getGradePublic())
+                .studentIdPublic(updateUserInfoRequest.getStudentIdPublic())
+                .phonePublic(updateUserInfoRequest.getPhonePublic())
                 .build();
         user.updateUserInfo(command);
         userRepository.save(user);

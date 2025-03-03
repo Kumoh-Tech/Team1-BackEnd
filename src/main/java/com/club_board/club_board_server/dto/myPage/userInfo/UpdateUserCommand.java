@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.dto.myPage;
+package com.club_board.club_board_server.dto.myPage.userInfo;
 import lombok.Builder;
 import lombok.Getter;
 

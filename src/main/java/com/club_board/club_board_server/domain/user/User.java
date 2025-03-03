@@ -1,5 +1,5 @@
 package com.club_board.club_board_server.domain.user;
-import com.club_board.club_board_server.dto.myPage.UpdateUserCommand;
+import com.club_board.club_board_server.dto.myPage.userInfo.UpdateUserCommand;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
