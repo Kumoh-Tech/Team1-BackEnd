@@ -70,7 +70,7 @@ public class AuthService {
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
             addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
-            return new UserLoginResponse(message,accessToken);
+            return new UserLoginResponse(message,accessToken,user.getRole());
         }
         catch (Exception e)
         {
