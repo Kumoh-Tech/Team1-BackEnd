@@ -19,7 +19,7 @@ public class UpdateUserInfoRequest {
     private String department;
 
     @NotNull
-    private int grade;
+    private Integer grade;
 
     @NotBlank
     @Pattern(message = "전화번호 형식이 올바르지 않습니다.",
