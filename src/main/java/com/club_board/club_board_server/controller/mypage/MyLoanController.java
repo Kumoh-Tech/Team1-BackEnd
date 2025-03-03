@@ -2,6 +2,7 @@ package com.club_board.club_board_server.controller.mypage;
 
 import com.club_board.club_board_server.dto.myPage.book.MyLoanResponse;
 import com.club_board.club_board_server.dto.myPage.book.MyReservationResponse;
+import com.club_board.club_board_server.dto.myPage.book.MyReturnResponse;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.myPage.MyLoanService;
@@ -38,8 +39,8 @@ public class MyLoanController {
 
     @GetMapping("/return/{userId}")
     @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.getCredentials(), #userId)")
-    public ResponseEntity<?> getReturnStatus(@PathVariable("userId") @P("userId") Long userId){
-        List<MyLoanResponse> myLoanResponse=myLoanService.getMyLoan(userId);
+    public ResponseEntity<ResponseBody<List<MyReturnResponse>>> getReturnStatus(@PathVariable("userId") @P("userId") Long userId){
+        List<MyReturnResponse> myLoanResponse=myLoanService.getMyReturn(userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(myLoanResponse));
     }
 }

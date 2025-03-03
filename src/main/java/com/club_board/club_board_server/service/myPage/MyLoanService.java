@@ -1,6 +1,4 @@
 package com.club_board.club_board_server.service.myPage;
-
-
 import com.club_board.club_board_server.dto.myPage.book.MyLoanResponse;
 import com.club_board.club_board_server.dto.myPage.book.MyReservationResponse;
 import com.club_board.club_board_server.dto.myPage.book.MyReturnResponse;
