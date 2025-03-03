@@ -10,7 +10,7 @@ import com.club_board.club_board_server.dto.bookAdmin.response.*;
 import com.club_board.club_board_server.dto.pageable.PageInfo;
 import com.club_board.club_board_server.repository.book.BookImageRepository;
 import com.club_board.club_board_server.repository.book.BookRepository;
-import com.club_board.club_board_server.repository.book.ReservationRepository;
+import com.club_board.club_board_server.repository.reservation.ReservationRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.file.S3Service;

@@ -6,7 +6,7 @@ import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.book.BookResponse;
 import com.club_board.club_board_server.repository.book.BookRepository;
-import com.club_board.club_board_server.repository.book.ReservationRepository;
+import com.club_board.club_board_server.repository.reservation.ReservationRepository;
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
