@@ -10,5 +10,5 @@ public class MyLoanResponse {
     private String bookName;
     private LocalDateTime loanDate;
     private LocalDateTime returnDate;
-    private int overdueDate;
+    private Integer overdueDate;
 }

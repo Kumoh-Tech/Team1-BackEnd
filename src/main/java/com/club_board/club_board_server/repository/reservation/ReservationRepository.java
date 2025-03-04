@@ -31,9 +31,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("select new com.club_board.club_board_server.dto.myPage.book.MyLoanResponse(" +
             "b.id, b.title, r.borrowDate, r.returnDate, " +
-            "CAST(function('DATEDIFF', current_date, r.returnDate) AS int)) " +
+            "CAST(function('DATEDIFF', current_date, function('ADDDATE', r.borrowDate, 14)) AS int)) " +
             "from Reservation r join r.book b " +
-            "where r.user.id = :userId and (r.status = 'BORROWING' or r.status='OVERDUE')")
+            "where r.user.id = :userId and (r.status = 'BORROWING' or r.status = 'OVERDUE')")
     List<MyLoanResponse> findUserLoans(@Param("userId") Long userId);
 
     @Query("select new com.club_board.club_board_server.dto.myPage.book.MyReservationResponse(" +
