@@ -41,8 +41,7 @@ public class BookService {
                                 bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
                             }
                             int borrowCount=reservationRepository.countActiveReservation(book.getId());
-                            boolean isBorrowing = reservationRepository.findReservedReservationByBookAndUser(book.getId(), userId).isPresent();
-
+                            ReservationStatus userReservationStatus=checkUserBookStatus(book.getId(),userId);
                 return   BookResponse.builder()
                         .id(book.getId())
                         .author(book.getAuthor())
@@ -53,34 +52,34 @@ public class BookService {
                         .bookImageId(book.getBookImage().getId())
                         .bookUrl(bookUrl)
                         .borrowCount(borrowCount)
-                        .isBorrowingBook(isBorrowing)
+                        .reservationStatus(userReservationStatus)
                         .build();
                 })
                 .collect(Collectors.toList());
     }
 
     // 책 상세내역 조회
-    public BookResponse getBookById(Long id,Long userId){
-        Book book=bookRepository.findById(id)
-                .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
-        String bookUrl=null;
-        if(book.getBookImage()!=null){
-            bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
+    public BookResponse getBookById(Long bookId,Long userId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.BOOK_NOT_FOUND));
+        String bookUrl = null;
+        if (book.getBookImage() != null) {
+            bookUrl = s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
         }
-        int borrowCount=reservationRepository.countActiveReservation(book.getId());
-        boolean isBorrowing = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
-        return BookResponse.builder()
-                .id(book.getId())
-                .author(book.getAuthor())
-                .title(book.getTitle())
-                .publishYear(book.getPublishYear())
-                .publisher(book.getPublisher())
-                .status(book.getStatus())
-                .bookImageId(book.getBookImage().getId())
-                .bookUrl(bookUrl)
-                .borrowCount(borrowCount)
-                .isBorrowingBook(isBorrowing)
-                .build();
+        int borrowCount = reservationRepository.countActiveReservation(book.getId());
+        ReservationStatus userReservationStatus=checkUserBookStatus(bookId,userId);
+            return BookResponse.builder()
+                    .id(book.getId())
+                    .author(book.getAuthor())
+                    .title(book.getTitle())
+                    .publishYear(book.getPublishYear())
+                    .publisher(book.getPublisher())
+                    .status(book.getStatus())
+                    .bookImageId(book.getBookImage().getId())
+                    .bookUrl(bookUrl)
+                    .borrowCount(borrowCount)
+                    .reservationStatus(userReservationStatus)
+                    .build();
     }
 
     @Transactional
@@ -147,5 +146,15 @@ public class BookService {
             reservation.getUser().setOverdue(true);
             reservationRepository.save(reservation);
         }
+    }
+    public ReservationStatus checkUserBookStatus(Long id,Long userId){
+        boolean isReserved = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
+        boolean isBorrowed = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
+        ReservationStatus userReservationStatus=null;
+        if(isReserved)
+            userReservationStatus=ReservationStatus.RESERVED;
+        if(isBorrowed)
+            userReservationStatus=ReservationStatus.BORROWING;
+        return userReservationStatus;
     }
 }

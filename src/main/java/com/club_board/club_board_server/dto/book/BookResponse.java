@@ -1,5 +1,6 @@
 package com.club_board.club_board_server.dto.book;
 import com.club_board.club_board_server.domain.book.BookStatus;
+import com.club_board.club_board_server.domain.book.ReservationStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,11 +15,11 @@ public class BookResponse {
     private Long bookImageId;
     private String bookUrl;
     private int borrowCount;
-    private boolean isBorrowingBook;
+    private ReservationStatus reservationStatus;
 
 
     @Builder
-    public BookResponse(Long id,String title, String author, int publishYear, String publisher, BookStatus status, Long bookImageId, String bookUrl,int borrowCount,boolean isBorrowingBook) {
+    public BookResponse(Long id,String title, String author, int publishYear, String publisher, BookStatus status, Long bookImageId, String bookUrl,int borrowCount,ReservationStatus reservationStatus) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -28,6 +29,6 @@ public class BookResponse {
         this.bookImageId = bookImageId;
         this.bookUrl = bookUrl;
         this.borrowCount=borrowCount;
-        this.isBorrowingBook=isBorrowingBook;
+        this.reservationStatus = reservationStatus;
     }
 }
