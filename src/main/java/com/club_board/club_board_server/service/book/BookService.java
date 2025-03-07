@@ -148,14 +148,15 @@ public class BookService {
             reservationRepository.save(reservation);
         }
     }
-    public ReservationStatus checkUserBookStatus(Long id,Long userId){
+    public ReservationStatus checkUserBookStatus(Long id, Long userId) {
         boolean isReserved = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
-        boolean isBorrowed = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
-        ReservationStatus userReservationStatus=null;
-        if(isReserved)
-            userReservationStatus=ReservationStatus.RESERVED;
-        if(isBorrowed)
-            userReservationStatus=ReservationStatus.BORROWING;
-        return userReservationStatus;
+        if (isReserved)
+            return ReservationStatus.RESERVED;
+
+        boolean isBorrowed = reservationRepository.findBorrowedReservationByBookAndUser(id, userId).isPresent();
+        if (isBorrowed)
+            return ReservationStatus.BORROWING;
+
+        return null;
     }
 }
