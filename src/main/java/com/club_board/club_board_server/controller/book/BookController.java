@@ -40,7 +40,6 @@ public class BookController {
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
     public ResponseEntity<ResponseBody<String>> reservation(@PathVariable("bookId") Long bookId,
                                                             @AuthenticationPrincipal CustomUserDetails customUserDetails){
-        log.info("유저 찾기");
         Long userId=customUserDetails.getUser().getId();
         bookService.addReservation(bookId,userId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("Reservation success"));
