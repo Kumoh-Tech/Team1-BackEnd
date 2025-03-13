@@ -1,5 +1,4 @@
 package com.club_board.club_board_server.service.user;
-
 import com.club_board.club_board_server.domain.user.Department;
 import com.club_board.club_board_server.domain.user.Role;
 import com.club_board.club_board_server.domain.user.User;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service

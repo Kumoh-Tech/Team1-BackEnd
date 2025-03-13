@@ -1,4 +1,5 @@
 package com.club_board.club_board_server.service.myPage;
+import com.club_board.club_board_server.domain.user.Department;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.myPage.userInfo.UserInfoResponse;
 import com.club_board.club_board_server.dto.myPage.userInfo.UpdateUserInfoRequest;
@@ -11,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import java.util.Arrays;
+import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,9 @@ public class MyPageService {
     public UserInfoResponse getMyPage(Long userId){
         User user=userRepository.findById(userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
+        List<String> departments= Arrays.stream(Department.values())
+                .map(Department::getDisplayName)
+                .toList();
         return UserInfoResponse.builder()
                 .role(user.getRole().getDisplayName())
                 .username(user.getUsername())
@@ -28,6 +33,7 @@ public class MyPageService {
                 .department(user.getDepartment())
                 .studentId(user.getStudent_id())
                 .grade(user.getGrade())
+                .departments(departments)
                 .phoneNumber(user.getPhoneNumber())
                 .departmentPublic(user.is_department_public())
                 .studentIdPublic(user.is_student_public())
