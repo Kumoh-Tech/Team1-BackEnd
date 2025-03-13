@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import java.time.LocalDate;
-
 @NoArgsConstructor
 @Entity
 @Getter
+@SQLDelete(sql="UPDATE user SET is_deleted=true  WHERE user_id=?")
+@Where(clause = "is_deleted = false")
 public class User {
 
     @Id @GeneratedValue
@@ -49,6 +51,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    private boolean is_deleted=false;
 
     @Builder
     public User(String username, String password, String name, String department, String student_id, int grade, String phoneNumber, LocalDate registrationDate,Role role) {

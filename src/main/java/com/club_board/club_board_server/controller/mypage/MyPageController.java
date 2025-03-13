@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -35,6 +34,13 @@ public class MyPageController {
         Long userId=customUserDetails.getUser().getId();
         myPageService.updateMyPage(userId, updateUserInfoRequest);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse("유저 정보 업데이트 성공"));
+    }
+    @DeleteMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<?>> softDeleteAccount(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        myPageService.softDeleteAccount(userId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse("회원탈퇴 완료"));
     }
 }
 
