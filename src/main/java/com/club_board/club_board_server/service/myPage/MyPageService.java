@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.Arrays;
 import java.util.List;
 @Slf4j
 @Service
@@ -23,9 +22,7 @@ public class MyPageService {
     public UserInfoResponse getMyPage(Long userId){
         User user=userRepository.findById(userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
-        List<String> departments= Arrays.stream(Department.values())
-                .map(Department::getDisplayName)
-                .toList();
+        List<String> departments= Department.showDepartment();
         return UserInfoResponse.builder()
                 .role(user.getRole().getDisplayName())
                 .username(user.getUsername())
@@ -62,5 +59,13 @@ public class MyPageService {
                 .build();
         user.updateUserInfo(command);
         userRepository.save(user);
+    }
+    @Transactional
+    public void softDeleteAccount(Long userId){
+        // 유저 아이디와 동일한 user 찾음
+        User user=userRepository.findById(userId)
+                .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
+        // 해당 상태 탈퇴로 변경
+        userRepository.delete(user);
     }
 }
