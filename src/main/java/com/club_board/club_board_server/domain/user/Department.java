@@ -36,10 +36,12 @@ public enum Department {
         return displayName;
     }
 
+    private static final List<String> DEPARTMENT_NAMES = Arrays.stream(Department.values())
+            .map(Department::getDisplayName)
+            .toList();
+
     public static List<String> showDepartment() {
-        return Arrays.stream(Department.values())
-                .map(Department::getDisplayName)
-                .toList();
+        return DEPARTMENT_NAMES;
     }
 
     public static Department fromDisplayName(String displayName) {
