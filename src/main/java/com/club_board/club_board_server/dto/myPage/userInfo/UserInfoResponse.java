@@ -9,30 +9,30 @@ public class UserInfoResponse {
     private String role;
     private String username;
     private String name;
-    private String department;
     private String studentId;
     private int grade;
-    private List<String> departments;
+    private String userDepartment;
     private String phoneNumber;
     private boolean departmentPublic;
     private boolean studentIdPublic;
     private boolean gradePublic;
     private boolean phonePublic;
+    private List<String> departments;
 
     @Builder
-    public UserInfoResponse(String role, String username, String name, String department, String studentId, int grade, List<String> departments, String phoneNumber
-    , boolean departmentPublic, boolean studentIdPublic, boolean gradePublic, boolean phonePublic) {
+    public UserInfoResponse(String role, String username, String name, String userDepartment, String studentId, int grade, String userDepartments, String phoneNumber
+    , boolean departmentPublic, boolean studentIdPublic, boolean gradePublic, boolean phonePublic,List<String> departments) {
         this.role = role;
         this.username = username;
         this.name=name;
-        this.department=department;
         this.studentId=studentId;
         this.grade=grade;
-        this.departments=departments;
+        this.userDepartment= userDepartment;
         this.phoneNumber=phoneNumber;
         this.departmentPublic=departmentPublic;
         this.studentIdPublic=studentIdPublic;
         this.gradePublic=gradePublic;
         this.phonePublic=phonePublic;
+        this.departments=departments;
     }
 }
