@@ -20,7 +20,7 @@ public class UserInfoResponse {
     private List<String> departments;
 
     @Builder
-    public UserInfoResponse(String role, String username, String name, String userDepartment, String studentId, int grade, String userDepartments, String phoneNumber
+    public UserInfoResponse(String role, String username, String name, String userDepartment, String studentId, int grade, String phoneNumber
     , boolean departmentPublic, boolean studentIdPublic, boolean gradePublic, boolean phonePublic,List<String> departments) {
         this.role = role;
         this.username = username;
