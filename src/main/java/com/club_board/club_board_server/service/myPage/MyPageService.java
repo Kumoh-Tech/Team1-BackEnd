@@ -22,12 +22,14 @@ public class MyPageService {
     public UserInfoResponse getMyPage(Long userId){
         User user=userRepository.findById(userId)
                 .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
-        List<String> departments= Department.showDepartment();
+        List<String> departments= Department.showDepartment().stream()
+                .filter(dept->!dept.equals(user.getDepartment()))
+                .toList();
         return UserInfoResponse.builder()
                 .role(user.getRole().getDisplayName())
                 .username(user.getUsername())
                 .name(user.getName())
-                .department(user.getDepartment())
+                .userDepartment(user.getDepartment())
                 .studentId(user.getStudent_id())
                 .grade(user.getGrade())
                 .departments(departments)
@@ -40,15 +42,27 @@ public class MyPageService {
     }
 
     @Transactional
-    public void updateMyPage(Long userId, UpdateUserInfoRequest updateUserInfoRequest){
-        User user=userRepository.findById(userId)
-                .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
-        if(!passwordEncoder.matches(updateUserInfoRequest.getPrePassword(), user.getPassword())){
-            throw new BusinessException(ExceptionType.NOT_CORRECT_PASSWORD);
+    public void updateMyPage(Long userId, UpdateUserInfoRequest updateUserInfoRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+        String encodedPassword = user.getPassword();
+        // 사용자가 비밀번호 변경을 요청했을 때만 처리
+        if (updateUserInfoRequest.getPrePassword() != null && !updateUserInfoRequest.getPrePassword().isBlank()) {
+            // 1. 기존 비밀번호가 올바른지 확인 (주의: raw password가 먼저, encoded password가 두번째여야 함)
+            if (!passwordEncoder.matches(updateUserInfoRequest.getPrePassword(), user.getPassword()))
+                throw new BusinessException(ExceptionType.NOT_CORRECT_PASSWORD);
+            // 2. 새 비밀번호가 비어있으면 안 됨
+            if (updateUserInfoRequest.getNewPassword() == null || updateUserInfoRequest.getNewPassword().isBlank()) {
+                throw new BusinessException(ExceptionType.PASSWORD_REQUIRED);
+            }
+            // 3. 새 비밀번호와 비밀번호 확인이 일치하는지 확인
+            if (!updateUserInfoRequest.getNewPassword().equals(updateUserInfoRequest.getNewPasswordConfirm()))
+                throw new BusinessException(ExceptionType.INVALID_PASSWORD_CONFIRM);
+            // 4. 새 비밀번호를 암호화 후 업데이트
+            encodedPassword = passwordEncoder.encode(updateUserInfoRequest.getNewPassword());
         }
-        String encodePassword=passwordEncoder.encode(updateUserInfoRequest.getNewPassword());
         UpdateUserCommand command = UpdateUserCommand.builder()
-                .password(encodePassword)
+                .password(encodedPassword)
                 .department(updateUserInfoRequest.getDepartment())
                 .grade(updateUserInfoRequest.getGrade())
                 .phoneNumber(updateUserInfoRequest.getPhoneNumber())
@@ -60,6 +74,7 @@ public class MyPageService {
         user.updateUserInfo(command);
         userRepository.save(user);
     }
+
     @Transactional
     public void softDeleteAccount(Long userId){
         // 유저 아이디와 동일한 user 찾음

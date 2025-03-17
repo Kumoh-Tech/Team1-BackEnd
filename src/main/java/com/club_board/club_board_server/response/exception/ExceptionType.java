@@ -26,6 +26,8 @@ public enum ExceptionType {
     EMAIL_NOT_VERIFIED(UNAUTHORIZED,"U008","이메일 인증이 완료되지 않았습니다."),
     INVALID_DEPARTMENT(BAD_REQUEST,"U009","해당하는 학과가 존재하지 않습니다."),
     USER_OVERDUE(UNAUTHORIZED,"U010","연체된 유저입니다."),
+    PASSWORD_REQUIRED(BAD_REQUEST,"U011","변경할 비밀번호를 입력해주세요."),
+    INVALID_PASSWORD_CONFIRM(BAD_REQUEST,"U012","비밀번호와 비밀번호 확인이 일치하지 않습니다."),
 
     //Auth
     INVALID_LOGIN(HttpStatus.UNAUTHORIZED,"A001","아이디 또는 비밀번호가 일치하지 않습니다."),
