@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
@@ -39,7 +41,7 @@ public class WebSecurityConfig{
         http
                 .logout(AbstractHttpConfigurer::disable)  // 시큐리티에서 기본적으로 제공하는 로그아웃 무효화
                 .csrf(AbstractHttpConfigurer::disable) //csrf 무시
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .anyRequest().denyAll()
