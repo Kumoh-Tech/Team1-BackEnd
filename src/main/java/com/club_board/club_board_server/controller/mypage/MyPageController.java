@@ -30,10 +30,10 @@ public class MyPageController {
 
     @PatchMapping()
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
-    public ResponseEntity<ResponseBody<String>> updateMyPage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody UpdateUserInfoRequest updateUserInfoRequest){
+    public ResponseEntity<ResponseBody<UserInfoResponse>> updateMyPage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody UpdateUserInfoRequest updateUserInfoRequest){
         Long userId=customUserDetails.getUser().getId();
-        myPageService.updateMyPage(userId, updateUserInfoRequest);
-        return ResponseEntity.ok(ResponseUtil.createSuccessResponse("유저 정보 업데이트 성공"));
+        UserInfoResponse userInfoResponse=myPageService.updateMyPage(userId, updateUserInfoRequest);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(userInfoResponse));
     }
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
