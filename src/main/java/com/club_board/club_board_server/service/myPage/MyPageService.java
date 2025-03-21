@@ -19,30 +19,14 @@ import java.util.List;
 public class MyPageService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    public UserInfoResponse getMyPage(Long userId){
-        User user=userRepository.findById(userId)
-                .orElseThrow(()->new BusinessException(ExceptionType.USER_NOT_FOUND));
-        List<String> departments= Department.showDepartment().stream()
-                .filter(dept->!dept.equals(user.getDepartment()))
-                .toList();
-        return UserInfoResponse.builder()
-                .role(user.getRole().getDisplayName())
-                .username(user.getUsername())
-                .name(user.getName())
-                .userDepartment(user.getDepartment())
-                .studentId(user.getStudent_id())
-                .grade(user.getGrade())
-                .departments(departments)
-                .phoneNumber(user.getPhoneNumber())
-                .departmentPublic(user.is_department_public())
-                .studentIdPublic(user.is_student_public())
-                .phonePublic(user.is_phone_public())
-                .gradePublic(user.is_grade_public())
-                .build();
+    public UserInfoResponse getMyPage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+        return buildUserInfoResponse(user);
     }
 
     @Transactional
-    public void updateMyPage(Long userId, UpdateUserInfoRequest updateUserInfoRequest) {
+    public UserInfoResponse updateMyPage(Long userId, UpdateUserInfoRequest updateUserInfoRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
         String encodedPassword = user.getPassword();
@@ -73,6 +57,26 @@ public class MyPageService {
                 .build();
         user.updateUserInfo(command);
         userRepository.save(user);
+        return buildUserInfoResponse(user);
+    }
+    private UserInfoResponse buildUserInfoResponse(User user) {
+        List<String> departments = Department.showDepartment().stream()
+                .filter(dept -> !dept.equals(user.getDepartment()))
+                .toList();
+        return UserInfoResponse.builder()
+                .role(user.getRole().getDisplayName())
+                .username(user.getUsername())
+                .name(user.getName())
+                .userDepartment(user.getDepartment())
+                .studentId(user.getStudent_id())
+                .grade(user.getGrade())
+                .phoneNumber(user.getPhoneNumber())
+                .departmentPublic(user.is_department_public())
+                .studentIdPublic(user.is_student_public())
+                .phonePublic(user.is_phone_public())
+                .gradePublic(user.is_grade_public())
+                .departments(departments)
+                .build();
     }
 
     @Transactional
