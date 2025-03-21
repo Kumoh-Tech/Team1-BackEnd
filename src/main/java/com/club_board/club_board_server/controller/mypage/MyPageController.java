@@ -4,7 +4,6 @@ import com.club_board.club_board_server.dto.myPage.userInfo.UserInfoResponse;
 import com.club_board.club_board_server.dto.myPage.userInfo.UpdateUserInfoRequest;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
-import com.club_board.club_board_server.service.file.S3Service;
 import com.club_board.club_board_server.service.myPage.MyPageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
