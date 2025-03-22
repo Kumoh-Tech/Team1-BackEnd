@@ -47,7 +47,7 @@ public class MyPageService {
         }
         UpdateUserCommand command = UpdateUserCommand.builder()
                 .password(encodedPassword)
-                .department(updateUserInfoRequest.getDepartment())
+                .department(updateUserInfoRequest.getUserDepartment())
                 .grade(updateUserInfoRequest.getGrade())
                 .phoneNumber(updateUserInfoRequest.getPhoneNumber())
                 .departmentPublic(updateUserInfoRequest.getDepartmentPublic())
