@@ -20,7 +20,7 @@ public class UpdateUserInfoRequest {
     private String newPasswordConfirm;
 
     @NotBlank
-    private String department;
+    private String userDepartment;
 
     @NotNull
     private Integer grade;
