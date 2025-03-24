@@ -136,11 +136,11 @@ public class BookService {
 
         int currentReservationCount = reservationRepository.countActiveReservation(book.getId());
         // 예약 취소시 인원수가 1부터 2이하 --> 책 RESERVED
-        if (book.getStatus()==BookStatus.FULLY_RESERVED && currentReservationCount>=1 && currentReservationCount<MAX_RESERVATION_COUNT) {
+        if (currentReservationCount>=1 && currentReservationCount<MAX_RESERVATION_COUNT) {
             book.setStatus(BookStatus.RESERVED);
         }
         // 인원수가 0이다 --> 책 AVAILABLE
-        else if(book.getStatus() == BookStatus.RESERVED && currentReservationCount==0) {
+        else if(currentReservationCount==0) {
             book.setStatus(BookStatus.AVAILABLE);
         }
     }
