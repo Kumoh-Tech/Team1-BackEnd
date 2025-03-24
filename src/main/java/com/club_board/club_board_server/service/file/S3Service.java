@@ -1,6 +1,5 @@
 package com.club_board.club_board_server.service.file;
 
-
 import com.club_board.club_board_server.domain.book.BookImage;
 import com.club_board.club_board_server.domain.file.File;
 import com.club_board.club_board_server.dto.file.request.PresignedUploadUrlRequest;
@@ -44,72 +43,23 @@ public class S3Service {
     private final static int PUT_REQUEST_DURATION_OF_MINUTES = 60;
     private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
 
-    public PresignedUploadUrlResponse generateUploadUrl(PresignedUploadUrlRequest request, Long userId) {
-        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+    public PresignedUploadUrlResponse generatePostFileUploadUrl(PresignedUploadUrlRequest request, Long userId) {
+        String objectName = this.generatePostFileName(request.getFileName(), userId);
 
-        try (
-                S3Presigner s3Presigner = S3Presigner.builder()
-                        .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
-                        .region(Region.AP_NORTHEAST_2)
-                        .build()
-        ) {
-            String objectName = this.generateFileName(request.getFileName(), userId);
+        String fileUploadUrl = this.generatePutObjectRequestUrl(objectName, request.getContentType());
 
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(objectName)
-                    .contentType(request.getContentType())
-                    .build();
+        File savedFile = fileService.saveFileName(objectName);
 
-            PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
-                    .putObjectRequest(putObjectRequest)
-                    .build();
-
-            PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putObjectPresignRequest);
-
-            File savedFile = fileService.saveFileName(objectName);
-
-            return PresignedUploadUrlResponse.builder()
-                    .url(presignedPutObjectRequest.url().toString())
-                    .fileId(savedFile.getId())
-                    .build();
-        }
+        return PresignedUploadUrlResponse.builder()
+                .url(fileUploadUrl)
+                .fileId(savedFile.getId())
+                .build();
     }
 
-    private String generateFileName(String originFileName, Long userId) {
+    private String generatePostFileName(String originFileName, Long userId) {
         return String.join(
                 "/", "postFiles", userId.toString(), UUID.randomUUID().toString(), originFileName
         );
-    }
-
-    public PresignedDownloadUrlResponse generateDownloadUrl(Long fileId) {
-        String objectName = fileService.getFileName(fileId);
-
-        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
-
-        try (
-                S3Presigner s3Presigner = S3Presigner.builder()
-                        .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
-                        .region(Region.AP_NORTHEAST_2)
-                        .build()
-        ) {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(objectName)
-                    .build();
-
-            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(GET_REQUEST_DURATION_OF_MINUTES))
-                    .getObjectRequest(getObjectRequest)
-                    .build();
-
-            PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
-
-            return PresignedDownloadUrlResponse.builder()
-                    .url(presignedGetObjectRequest.url().toString())
-                    .build();
-        }
     }
 
     public PresignedUploadUrlResponse generateBookImageUploadUrl(PresignedUploadUrlRequest request) {
@@ -117,36 +67,16 @@ public class S3Service {
             throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
         }
 
-        AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+        String objectName = this.generateBookImageName(request.getFileName());
 
-        try (
-                S3Presigner s3Presigner = S3Presigner.builder()
-                        .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
-                        .region(Region.AP_NORTHEAST_2)
-                        .build()
-        ) {
-            String objectName = this.generateBookImageName(request.getFileName());
+        String fileUploadUrl = this.generatePutObjectRequestUrl(objectName, request.getContentType());
 
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(objectName)
-                    .contentType(request.getContentType())
-                    .build();
+        BookImage savedBookImage = bookImageService.saveBookImage(objectName);
 
-            PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(PUT_REQUEST_DURATION_OF_MINUTES))
-                    .putObjectRequest(putObjectRequest)
-                    .build();
-
-            PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putObjectPresignRequest);
-
-            BookImage savedBookImage = bookImageService.saveBookImage(objectName);
-
-            return PresignedUploadUrlResponse.builder()
-                    .url(presignedPutObjectRequest.url().toString())
-                    .fileId(savedBookImage.getId())
-                    .build();
-        }
+        return PresignedUploadUrlResponse.builder()
+                .url(fileUploadUrl)
+                .fileId(savedBookImage.getId())
+                .build();
     }
 
     private String generateBookImageName(String originFileName) {
@@ -155,11 +85,7 @@ public class S3Service {
         );
     }
 
-    public PresignedUploadUrlResponse generateBookImageUpdateUrl(PresignedUploadUrlRequest request, Long bookImageId) {
-        if (!request.getContentType().startsWith("image/")) {
-            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
-        }
-
+    private String generatePutObjectRequestUrl(String objectName, String contentType) {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         try (
@@ -168,12 +94,10 @@ public class S3Service {
                         .region(Region.AP_NORTHEAST_2)
                         .build()
         ) {
-            String objectName = bookImageService.getFileName(bookImageId);
-
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(objectName)
-                    .contentType(request.getContentType())
+                    .contentType(contentType)
                     .build();
 
             PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
@@ -183,16 +107,31 @@ public class S3Service {
 
             PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putObjectPresignRequest);
 
-            return PresignedUploadUrlResponse.builder()
-                    .url(presignedPutObjectRequest.url().toString())
-                    .fileId(bookImageId)
-                    .build();
+            return presignedPutObjectRequest.url().toString();
         }
+    }
+
+    public PresignedDownloadUrlResponse generatePostFileDownloadUrl(Long fileId) {
+        String objectName = fileService.getFileName(fileId);
+
+        String fileDownloadUrl = this.generateGetObjectRequestUrl(objectName);
+
+        return PresignedDownloadUrlResponse.builder()
+                .url(fileDownloadUrl)
+                .build();
     }
 
     public PresignedDownloadUrlResponse generateBookImageDownloadUrl(Long bookImageId) {
         String objectName = bookImageService.getFileName(bookImageId);
 
+        String fileDownloadUrl = this.generateGetObjectRequestUrl(objectName);
+
+        return PresignedDownloadUrlResponse.builder()
+                .url(fileDownloadUrl)
+                .build();
+    }
+
+    private String generateGetObjectRequestUrl(String objectName) {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         try (
@@ -213,17 +152,30 @@ public class S3Service {
 
             PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
 
-            return PresignedDownloadUrlResponse.builder()
-                    .url(presignedGetObjectRequest.url().toString())
-                    .build();
+            return presignedGetObjectRequest.url().toString();
         }
     }
 
-    public void deleteBookImage(BookImage bookImage) {
-        this.deleteObject(bookImage.getUrl());
+    public PresignedUploadUrlResponse generateBookImageUpdateUrl(PresignedUploadUrlRequest request, Long bookImageId) {
+        if (!request.getContentType().startsWith("image/")) {
+            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
+        }
+
+        String objectName = bookImageService.getFileName(bookImageId);
+
+        String fileUpdateUrl = this.generatePutObjectRequestUrl(objectName, request.getContentType());
+
+        return PresignedUploadUrlResponse.builder()
+                .url(fileUpdateUrl)
+                .fileId(bookImageId)
+                .build();
     }
 
-    private void deleteObject(String url) {
+    public void deleteBookImage(BookImage bookImage) {
+        this.deleteObjectRequest(bookImage.getUrl());
+    }
+
+    private void deleteObjectRequest(String url) {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         try (

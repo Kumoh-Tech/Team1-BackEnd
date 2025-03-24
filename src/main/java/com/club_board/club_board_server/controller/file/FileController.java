@@ -23,24 +23,25 @@ public class FileController {
     private final S3Service s3Service;
 
     @PostMapping("/upload-url")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generateUploadUrl(
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generatePostFileUploadUrl(
             @RequestBody @Valid PresignedUploadUrlRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        PresignedUploadUrlResponse response = s3Service.generateUploadUrl(request, userDetails.getUser().getId());
+        PresignedUploadUrlResponse response = s3Service.generatePostFileUploadUrl(request, userDetails.getUser().getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/download-url")
-    public ResponseEntity<ResponseBody<PresignedDownloadUrlResponse>> generateDownloadUrl(@RequestParam Long fileId) {
-        PresignedDownloadUrlResponse response = s3Service.generateDownloadUrl(fileId);
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<PresignedDownloadUrlResponse>> generatePostFileDownloadUrl(@RequestParam Long fileId) {
+        PresignedDownloadUrlResponse response = s3Service.generatePostFileDownloadUrl(fileId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @PostMapping("/bookImage/upload-url")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generateBookImageUploadUrl(
             @RequestBody @Valid PresignedUploadUrlRequest request
     ) {
@@ -50,7 +51,7 @@ public class FileController {
     }
 
     @PostMapping("/bookImage/update-url")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generateBookImageUpdateUrl(
             @RequestBody @Valid PresignedUploadUrlRequest request,
             @RequestParam Long bookImageId
@@ -60,6 +61,7 @@ public class FileController {
     }
 
     @GetMapping("/bookImage/download-url")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<ResponseBody<PresignedDownloadUrlResponse>> generateBookImageDownloadUrl(@RequestParam Long bookImageId) {
         PresignedDownloadUrlResponse response = s3Service.generateBookImageDownloadUrl(bookImageId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
