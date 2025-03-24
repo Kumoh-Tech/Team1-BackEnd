@@ -26,7 +26,6 @@ public class Post extends AuditEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
-    @OneToMany
-    @JoinColumn(name = "file_id")
+    @OneToMany(mappedBy = "post")
     private List<File> fileNames;
 }
