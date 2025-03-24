@@ -29,7 +29,7 @@ public class BookService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final S3Service s3Service;
-
+    private static final int MAX_RESERVATION_COUNT=3;
 
     // 모든 책을 조회, 데이터가 많아질 시 추후 페이징 처리 필요해보임
     public List<BookResponse> getAllBooks(Long userId){
@@ -91,7 +91,7 @@ public class BookService {
 
         // 예약 수를 동적으로 계산하여 체크
         int currentReservationCount = reservationRepository.countActiveReservation(book.getId());
-        if (currentReservationCount >= 3 || book.getStatus()==BookStatus.FULLY_RESERVED) {
+        if (currentReservationCount >= MAX_RESERVATION_COUNT || book.getStatus()==BookStatus.FULLY_RESERVED) {
             throw new BusinessException(ExceptionType.BOOK_ALREADY_FULL);
         }
 
@@ -109,11 +109,15 @@ public class BookService {
         Reservation reservation=new Reservation(user,book);
         reservationRepository.save(reservation);
 
-        // 예약 수가 3명이 되면 책 상태를 FULLY_RESERVED로 변경
-        if (currentReservationCount + 1 >= 3) {
-            book.setStatus(BookStatus.FULLY_RESERVED);
-            bookRepository.save(book);
+        int nextReservationCount=currentReservationCount+1;
+        if(nextReservationCount>=1 && nextReservationCount<MAX_RESERVATION_COUNT){
+            book.setStatus(BookStatus.RESERVED);
         }
+        // 예약 수가 3명이 되면 책 상태를 FULLY_RESERVED로 변경
+        else if(nextReservationCount >= MAX_RESERVATION_COUNT) {
+            book.setStatus(BookStatus.FULLY_RESERVED);
+        }
+        bookRepository.save(book);
     }
 
     // 예약 취소
@@ -125,7 +129,13 @@ public class BookService {
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
-        if (book.getStatus() == BookStatus.FULLY_RESERVED && reservationRepository.countActiveReservation(book.getId())-1<3) {
+        int currentReservationCount = reservationRepository.countActiveReservation(book.getId());
+        // 예약 취소시 인원수가 1부터 2이하 --> 책 RESERVED
+        if (book.getStatus()==BookStatus.FULLY_RESERVED && currentReservationCount>=1 && currentReservationCount<MAX_RESERVATION_COUNT) {
+            book.setStatus(BookStatus.RESERVED);
+        }
+        // 인원수가 0이다 --> 책 AVAILABLE
+        else if(book.getStatus() == BookStatus.RESERVED && currentReservationCount==0) {
             book.setStatus(BookStatus.AVAILABLE);
         }
     }
