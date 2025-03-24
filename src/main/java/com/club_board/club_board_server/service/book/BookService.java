@@ -110,14 +110,19 @@ public class BookService {
         reservationRepository.save(reservation);
 
         int nextReservationCount=currentReservationCount+1;
-        if(nextReservationCount>=1 && nextReservationCount<MAX_RESERVATION_COUNT){
-            book.setStatus(BookStatus.RESERVED);
+        BookStatus targetStatus = book.getStatus();
+
+        if (nextReservationCount >= MAX_RESERVATION_COUNT) {
+            targetStatus = BookStatus.FULLY_RESERVED;
+        } else if (nextReservationCount > 0) {
+            targetStatus = BookStatus.RESERVED;
         }
-        // 예약 수가 3명이 되면 책 상태를 FULLY_RESERVED로 변경
-        else if(nextReservationCount >= MAX_RESERVATION_COUNT) {
-            book.setStatus(BookStatus.FULLY_RESERVED);
+
+        // 현재 상태와 다를 때만 상태를 업데이트
+        if (book.getStatus() != targetStatus) {
+            book.setStatus(targetStatus);
+            bookRepository.save(book);
         }
-        bookRepository.save(book);
     }
 
     // 예약 취소
