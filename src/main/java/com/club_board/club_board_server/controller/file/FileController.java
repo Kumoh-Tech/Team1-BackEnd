@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class FileController {
     private final S3Service s3Service;
 
-    @PostMapping("/upload-url")
+    @PostMapping("/postFile/upload-url")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<ResponseBody<PresignedUploadUrlResponse>> generatePostFileUploadUrl(
             @RequestBody @Valid PresignedUploadUrlRequest request,
@@ -33,7 +33,7 @@ public class FileController {
                 .body(ResponseUtil.createSuccessResponse(response));
     }
 
-    @GetMapping("/download-url")
+    @GetMapping("/postFile/download-url")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<ResponseBody<PresignedDownloadUrlResponse>> generatePostFileDownloadUrl(@RequestParam Long fileId) {
         PresignedDownloadUrlResponse response = s3Service.generatePostFileDownloadUrl(fileId);
