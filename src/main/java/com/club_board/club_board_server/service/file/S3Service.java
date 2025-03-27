@@ -63,9 +63,7 @@ public class S3Service {
     }
 
     public PresignedUploadUrlResponse generateBookImageUploadUrl(PresignedUploadUrlRequest request) {
-        if (!request.getContentType().startsWith("image/")) {
-            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
-        }
+        this.checkImageContentType(request.getContentType());
 
         String objectName = this.generateBookImageName(request.getFileName());
 
@@ -157,9 +155,7 @@ public class S3Service {
     }
 
     public PresignedUploadUrlResponse generateBookImageUpdateUrl(PresignedUploadUrlRequest request, Long bookImageId) {
-        if (!request.getContentType().startsWith("image/")) {
-            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
-        }
+        this.checkImageContentType(request.getContentType());
 
         String objectName = bookImageService.getFileName(bookImageId);
 
@@ -169,6 +165,12 @@ public class S3Service {
                 .url(fileUpdateUrl)
                 .fileId(bookImageId)
                 .build();
+    }
+
+    private void checkImageContentType(String contentType) {
+        if (!contentType.startsWith("image/")) {
+            throw new BusinessException(ExceptionType.INVALID_FILE_TYPE);
+        }
     }
 
     public void deleteBookImage(BookImage bookImage) {
@@ -192,5 +194,4 @@ public class S3Service {
             s3.deleteObject(deleteObjectsRequest);
         }
     }
-
 }
