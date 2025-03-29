@@ -2,12 +2,15 @@ package com.club_board.club_board_server.service.file;
 
 import com.club_board.club_board_server.domain.book.BookImage;
 import com.club_board.club_board_server.domain.file.File;
+import com.club_board.club_board_server.dto.file.request.PresignedProfileImageUrlRequest;
 import com.club_board.club_board_server.dto.file.request.PresignedUploadUrlRequest;
 import com.club_board.club_board_server.dto.file.response.PresignedDownloadUrlResponse;
+import com.club_board.club_board_server.dto.file.response.PresignedProfileImageUrlResponse;
 import com.club_board.club_board_server.dto.file.response.PresignedUploadUrlResponse;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.book.BookImageService;
+import com.club_board.club_board_server.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ import java.util.UUID;
 public class S3Service {
     private final FileService fileService;
     private final BookImageService bookImageService;
+    private final UserService userService;
 
     @Value("${aws.s3.credentials.accessKey}")
     private String accessKey;
@@ -129,6 +133,20 @@ public class S3Service {
                 .build();
     }
 
+    public PresignedDownloadUrlResponse generateProfileImageDownloadUrl(Long userId) {
+        String objectName = this.getProfileImageName(userId);
+
+        String fileDownloadUrl = this.generateGetObjectRequestUrl(objectName);
+
+        return PresignedDownloadUrlResponse.builder()
+                .url(fileDownloadUrl)
+                .build();
+    }
+
+    private String getProfileImageName(Long userId) {
+        return userService.getProfileImageUrl(userId);
+    }
+
     private String generateGetObjectRequestUrl(String objectName) {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
@@ -154,6 +172,24 @@ public class S3Service {
         }
     }
 
+    public PresignedProfileImageUrlResponse generateProfileImageUpdateUrl(PresignedProfileImageUrlRequest request, Long userId) {
+        this.checkImageContentType(request.getContentType());
+
+        String objectName = this.generateProfileImageName(userId);
+
+        String fileUploadUrl = this.generatePutObjectRequestUrl(objectName, request.getContentType());
+
+        userService.setProfileImageUrl(userId, objectName);
+
+        return PresignedProfileImageUrlResponse.builder()
+                .url(fileUploadUrl)
+                .build();
+    }
+
+    private String generateProfileImageName(Long userId) {
+        return String.join("/", "profileImages", userId.toString(), UUID.randomUUID().toString());
+    }
+
     public PresignedUploadUrlResponse generateBookImageUpdateUrl(PresignedUploadUrlRequest request, Long bookImageId) {
         this.checkImageContentType(request.getContentType());
 
@@ -175,6 +211,12 @@ public class S3Service {
 
     public void deleteBookImage(BookImage bookImage) {
         this.deleteObjectRequest(bookImage.getUrl());
+    }
+
+    public void deleteProfileImage(Long userId) {
+        this.deleteObjectRequest(this.getProfileImageName(userId));
+
+        userService.setProfileImageUrl(userId, null);
     }
 
     private void deleteObjectRequest(String url) {

@@ -14,9 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,5 +108,20 @@ public class UserService {
 
     private boolean isValidCode(VerificationCode verificationCode,MailVerifyRequest mailVerifyRequest) { //코드 일치 체크
         return verificationCode.getCode() == mailVerifyRequest.getMailCode();
+    }
+
+    @Transactional
+    public void setProfileImageUrl(Long userId, String objectName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+
+        user.setProfileImageUrl(objectName);
+    }
+
+    public String getProfileImageUrl(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
+
+        return user.getProfileImageUrl();
     }
 }

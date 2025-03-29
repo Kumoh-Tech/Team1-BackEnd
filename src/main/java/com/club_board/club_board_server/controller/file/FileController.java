@@ -1,8 +1,10 @@
 package com.club_board.club_board_server.controller.file;
 
 import com.club_board.club_board_server.domain.user.CustomUserDetails;
+import com.club_board.club_board_server.dto.file.request.PresignedProfileImageUrlRequest;
 import com.club_board.club_board_server.dto.file.request.PresignedUploadUrlRequest;
 import com.club_board.club_board_server.dto.file.response.PresignedDownloadUrlResponse;
+import com.club_board.club_board_server.dto.file.response.PresignedProfileImageUrlResponse;
 import com.club_board.club_board_server.dto.file.response.PresignedUploadUrlResponse;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
@@ -67,4 +69,31 @@ public class FileController {
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
+    @PostMapping("/profileImage/update-url")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<PresignedProfileImageUrlResponse>> generateProfileImageUpdateUrl(
+            @RequestBody @Valid PresignedProfileImageUrlRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        PresignedProfileImageUrlResponse response = s3Service.generateProfileImageUpdateUrl(request, userDetails.getUser().getId());
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @GetMapping("/profileImage/download-url")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<PresignedDownloadUrlResponse>> generateProfileImageDownloadUrl(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        PresignedDownloadUrlResponse response = s3Service.generateProfileImageDownloadUrl(userDetails.getUser().getId());
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @DeleteMapping("/profileImage")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<Void>> deleteProfileImage(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        s3Service.deleteProfileImage(userDetails.getUser().getId());
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
 }
