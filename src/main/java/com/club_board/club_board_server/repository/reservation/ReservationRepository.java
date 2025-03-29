@@ -1,9 +1,12 @@
-package com.club_board.club_board_server.repository.book;
-
+package com.club_board.club_board_server.repository.reservation;
+import com.club_board.club_board_server.domain.book.Book;
 import com.club_board.club_board_server.domain.book.Reservation;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookLoan;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookReservation;
 import com.club_board.club_board_server.dto.bookAdmin.response.BookReturn;
+import com.club_board.club_board_server.dto.myPage.book.MyLoanResponse;
+import com.club_board.club_board_server.dto.myPage.book.MyReservationResponse;
+import com.club_board.club_board_server.dto.myPage.book.MyReturnResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,8 +26,30 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT COUNT(r) FROM Reservation r WHERE r.book.id = :bookId AND (r.status='RESERVED' OR r.status='BORROWING')")
     int countActiveReservation(@Param("bookId") Long bookId);
 
-    @Query("SELECT r From Reservation r WHERE r.book.id=:bookId AND r.user.id=:userId")
+    @Query("SELECT r From Reservation r WHERE r.book.id=:bookId AND r.user.id=:userId AND (r.status='RESERVED' OR r.status='BORROWING')")
     Optional<Reservation> findReservationByBookAndUserId(@Param("bookId") Long bookId, @Param("userId") Long userId);
+
+    @Query("SELECT r FROM Reservation r WHERE r.book.id = :bookId AND r.user.id =:userId AND (r.status='BORROWING' OR r.status='OVERDUE')")
+    Optional<Reservation> findBorrowedReservationByBookAndUser(@Param("bookId") Long bookId, @Param("userId") Long userId);
+
+    @Query("select new com.club_board.club_board_server.dto.myPage.book.MyLoanResponse(" +
+            "b.id, b.title, r.borrowDate, r.returnDate, " +
+            "CAST(function('DATEDIFF', current_date, function('ADDDATE', r.borrowDate, 14)) AS int)) " +
+            "from Reservation r join r.book b " +
+            "where r.user.id = :userId and (r.status = 'BORROWING' or r.status = 'OVERDUE')")
+    List<MyLoanResponse> findUserLoans(@Param("userId") Long userId);
+
+    @Query("select new com.club_board.club_board_server.dto.myPage.book.MyReservationResponse(" +
+            "b.id, b.title, r.reservationDate) " +
+            "from Reservation r join r.book b " +
+            "where r.user.id = :userId and r.status = 'RESERVED'")
+    List<MyReservationResponse> findUserReservations(@Param("userId") Long userId);
+
+    @Query("select new com.club_board.club_board_server.dto.myPage.book.MyReturnResponse(" +
+            "b.id, b.title, r.borrowDate, r.returnDate) " +
+            "from Reservation r join r.book b " +
+            "where r.user.id = :userId and (r.status = 'RETURNED' or r.status='OVERDUE_RETURNED')")
+    List<MyReturnResponse> findUserReturns(@Param("userId") Long userId);
 
     @Query("SELECT r FROM Reservation r WHERE r.book.id = :bookId AND r.user.id=:userId AND r.status='RESERVED'")
     Optional<Reservation> findReservedReservationByBookAndUser(@Param("bookId") Long bookId, @Param("userId") Long userId);
@@ -50,4 +75,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r WHERE r.book.id=:bookId AND (r.status='BORROWING' OR r.status='OVERDUE')")
     List<Reservation> findByBookAndBorrowingStatus(Long bookId);
+
+    Optional<Reservation> findByBook(Book savedBook);
 }

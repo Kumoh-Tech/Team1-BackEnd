@@ -2,11 +2,23 @@ name: CI/CD to EC2
 
 on:
   push:
-    branches: [ "dev", "ci-cd" ]
+    branches: [ "dev", "ci-cd", "cors" ]
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_pass
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h 127.0.0.1 --silent" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       # (1) 리포지토리 체크아웃
@@ -21,19 +33,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # (3-1) application.yml 파일 생성
-      - name: Make application.yml
+      # (3-1) test application.yml 파일 생성
+      - name: Make test application.yml
         run: |
           mkdir -p src/main/resources
-          cd src/main/resources
-          touch ./application.yml
-          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+          echo "${{ secrets.TEST_APPLICATION_YML }}" > src/main/resources/application.yml
 
-      # (3-2) Gradle 빌드 (테스트 제외)
+      # (3-2) Gradle 빌드
       - name: Build with Gradle
         run: |
           chmod +x gradlew
           ./gradlew clean build
+
+      # (3-3) 서버 실행용 application.yml 파일 생성
+      - name: Make production application.yml
+        run: |
+          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
 
       # (4) ECR 로그인 (도커 로그인)
       - name: Login to Amazon ECR
@@ -45,7 +60,7 @@ jobs:
       # (5) Docker 이미지 빌드 & 태그
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.ECR_REPO_NAME }} .
+          docker build --no-cache -t ${{ secrets.ECR_REPO_NAME }} .
           docker tag ${{ secrets.ECR_REPO_NAME }}:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_NAME }}:latest
 
       # (6) ECR에 Docker 이미지 push

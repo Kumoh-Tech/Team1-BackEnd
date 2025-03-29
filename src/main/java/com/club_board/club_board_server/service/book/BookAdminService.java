@@ -5,11 +5,12 @@ import com.club_board.club_board_server.domain.book.BookImage;
 import com.club_board.club_board_server.domain.book.Reservation;
 import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
+import com.club_board.club_board_server.dto.bookAdmin.request.UpdateBookRequest;
 import com.club_board.club_board_server.dto.bookAdmin.response.*;
 import com.club_board.club_board_server.dto.pageable.PageInfo;
 import com.club_board.club_board_server.repository.book.BookImageRepository;
 import com.club_board.club_board_server.repository.book.BookRepository;
-import com.club_board.club_board_server.repository.book.ReservationRepository;
+import com.club_board.club_board_server.repository.reservation.ReservationRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.file.S3Service;
@@ -52,23 +53,12 @@ public class BookAdminService {
         savedImage.setBook(newBook);
     }
 
-
     @Transactional
-    public void updateBook(Long bookId, RegisterBookRequest request) {
+    public void updateBook(Long bookId, UpdateBookRequest request) {
         Book savedBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.BOOK_NOT_FOUND));
 
-        BookImage savedBookImage = bookImageRepository.findById(request.getFileId())
-                .orElseThrow(() -> new BusinessException(ExceptionType.FILE_NOT_FOUND));
-
-        BeanUtils.copyProperties(request, savedBook, "fileId");
-
-        if (savedBookImage.getBook() != savedBook) {
-            bookImageRepository.findByBook(savedBook)
-                    .ifPresent(s3Service::deleteBookImage);
-
-            savedBookImage.setBook(savedBook);
-        }
+        BeanUtils.copyProperties(request, savedBook);
     }
 
     @Transactional
@@ -78,6 +68,10 @@ public class BookAdminService {
 
         BookImage savedBookImage = bookImageRepository.findByBook(savedBook)
                 .orElseThrow(() -> new BusinessException(ExceptionType.FILE_NOT_FOUND));
+
+        reservationRepository.findByBook(savedBook).ifPresent(reservation -> {
+            throw new BusinessException(ExceptionType.DELETE_RESTRICTED_BY_RESERVATIONS);
+        });
 
         s3Service.deleteBookImage(savedBookImage);
 

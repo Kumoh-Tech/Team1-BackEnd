@@ -1,6 +1,7 @@
 package com.club_board.club_board_server.controller.mypage;
-import com.club_board.club_board_server.dto.myPage.MyPageResponse;
-import com.club_board.club_board_server.dto.myPage.UpdateMyPageRequest;
+import com.club_board.club_board_server.domain.user.CustomUserDetails;
+import com.club_board.club_board_server.dto.myPage.userInfo.UserInfoResponse;
+import com.club_board.club_board_server.dto.myPage.userInfo.UpdateUserInfoRequest;
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.service.myPage.MyPageService;
@@ -8,29 +9,39 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/myPage")
 public class MyPageController {
 
     private final MyPageService myPageService;
 
-    @GetMapping("/myPage/{userId}")
-    @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.credentials,#userId)")
-    public ResponseEntity<ResponseBody<MyPageResponse>> showMyPage(@PathVariable Long userId){
-        MyPageResponse myPageResponse=myPageService.getMyPage(userId);
-        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(myPageResponse));
+    @GetMapping()
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<UserInfoResponse>> showMyPage(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        UserInfoResponse userInfoResponse =myPageService.getMyPage(userId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(userInfoResponse));
     }
 
-    @PatchMapping("/myPage/{userId}")
-    @PreAuthorize("@tokenProvider.getUserIdFromToken(authentication.credentials,#userId)")
-    public ResponseEntity<ResponseBody<String>> updateMyPage(@PathVariable Long userId, @RequestBody UpdateMyPageRequest updateMyPageRequest){
-        myPageService.updateMyPage(userId,updateMyPageRequest);
-        return ResponseEntity.ok(ResponseUtil.createSuccessResponse("유저 정보 업데이트 성공"));
+    @PatchMapping()
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<UserInfoResponse>> updateMyPage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody UpdateUserInfoRequest updateUserInfoRequest){
+        Long userId=customUserDetails.getUser().getId();
+        UserInfoResponse userInfoResponse=myPageService.updateMyPage(userId, updateUserInfoRequest);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(userInfoResponse));
+    }
+    @DeleteMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN','ROLE_OWNER')")
+    public ResponseEntity<ResponseBody<?>> softDeleteAccount(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+        Long userId=customUserDetails.getUser().getId();
+        myPageService.softDeleteAccount(userId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse("회원탈퇴 완료"));
     }
 }
-
 
 

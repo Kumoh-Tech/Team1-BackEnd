@@ -1,9 +1,8 @@
 package com.club_board.club_board_server.domain.user;
-
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
-
 import java.util.Arrays;
+import java.util.List;
 
 public enum Department {
     COMPUTER_ENGINEERING("컴퓨터공학과"),
@@ -35,6 +34,14 @@ public enum Department {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    private static final List<String> DEPARTMENT_NAMES = Arrays.stream(Department.values())
+            .map(Department::getDisplayName)
+            .toList();
+
+    public static List<String> showDepartment() {
+        return DEPARTMENT_NAMES;
     }
 
     public static Department fromDisplayName(String displayName) {

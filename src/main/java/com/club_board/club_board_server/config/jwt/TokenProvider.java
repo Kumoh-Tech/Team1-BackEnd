@@ -73,15 +73,17 @@ public class TokenProvider {
                     .parseClaimsJws(token)// 토큰의 만료, 서명 오류, 구조적 문제 검사
                     .getBody();
         } catch (ExpiredJwtException e) { // 토큰이 만료되었을 때
-            if(tokenType==TokenType.ACCESS)
+            if(tokenType==TokenType.ACCESS){
                 throw new BusinessException(ExceptionType.EXPIRED_ACCESS_TOKEN);
+            }
             else {
-                throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+                throw new BusinessException(ExceptionType.EXPIRED_REFRESH_TOKEN);
             }
         }
         catch (Exception e) { //토큰이 유효하지 않을 때
-            if(tokenType==TokenType.ACCESS)
+            if(tokenType==TokenType.ACCESS){
                 throw new BusinessException(ExceptionType.INVALID_ACCESS_TOKEN);
+            }
             else {
                 throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
             }

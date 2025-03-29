@@ -6,7 +6,7 @@ import com.club_board.club_board_server.domain.book.ReservationStatus;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.book.BookResponse;
 import com.club_board.club_board_server.repository.book.BookRepository;
-import com.club_board.club_board_server.repository.book.ReservationRepository;
+import com.club_board.club_board_server.repository.reservation.ReservationRepository;
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
@@ -29,7 +29,7 @@ public class BookService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final S3Service s3Service;
-
+    private static final int MAX_RESERVATION_COUNT=3;
 
     // 모든 책을 조회, 데이터가 많아질 시 추후 페이징 처리 필요해보임
     public List<BookResponse> getAllBooks(Long userId){
@@ -41,7 +41,7 @@ public class BookService {
                                 bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
                             }
                             int borrowCount=reservationRepository.countActiveReservation(book.getId());
-                            boolean isBorrowing = reservationRepository.findReservedReservationByBookAndUser(book.getId(), userId).isPresent();
+                            ReservationStatus userReservationStatus=checkUserBookStatus(book.getId(),userId);
 
                 return   BookResponse.builder()
                         .id(book.getId())
@@ -50,24 +50,25 @@ public class BookService {
                         .publishYear(book.getPublishYear())
                         .publisher(book.getPublisher())
                         .status(book.getStatus())
+                        .bookImageId(book.getBookImage().getId())
                         .bookUrl(bookUrl)
                         .borrowCount(borrowCount)
-                        .isBorrowingBook(isBorrowing)
+                        .reservationStatus(userReservationStatus)
                         .build();
                 })
                 .collect(Collectors.toList());
     }
 
     // 책 상세내역 조회
-    public BookResponse getBookById(Long id,Long userId){
-        Book book=bookRepository.findById(id)
+    public BookResponse getBookById(Long bookId,Long userId){
+        Book book=bookRepository.findById(bookId)
                 .orElseThrow(()->new BusinessException(ExceptionType.BOOK_NOT_FOUND));
         String bookUrl=null;
         if(book.getBookImage()!=null){
             bookUrl=s3Service.generateBookImageDownloadUrl(book.getBookImage().getId()).getUrl();
         }
         int borrowCount=reservationRepository.countActiveReservation(book.getId());
-        boolean isBorrowing = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
+        ReservationStatus userReservationStatus=checkUserBookStatus(bookId,userId);
         return BookResponse.builder()
                 .id(book.getId())
                 .author(book.getAuthor())
@@ -75,9 +76,10 @@ public class BookService {
                 .publishYear(book.getPublishYear())
                 .publisher(book.getPublisher())
                 .status(book.getStatus())
+                .bookImageId(book.getBookImage().getId())
                 .bookUrl(bookUrl)
                 .borrowCount(borrowCount)
-                .isBorrowingBook(isBorrowing)
+                .reservationStatus(userReservationStatus)
                 .build();
     }
 
@@ -89,7 +91,7 @@ public class BookService {
 
         // 예약 수를 동적으로 계산하여 체크
         int currentReservationCount = reservationRepository.countActiveReservation(book.getId());
-        if (currentReservationCount >= 3 || book.getStatus()==BookStatus.FULLY_RESERVED) {
+        if (currentReservationCount >= MAX_RESERVATION_COUNT || book.getStatus()==BookStatus.FULLY_RESERVED) {
             throw new BusinessException(ExceptionType.BOOK_ALREADY_FULL);
         }
 
@@ -107,9 +109,18 @@ public class BookService {
         Reservation reservation=new Reservation(user,book);
         reservationRepository.save(reservation);
 
-        // 예약 수가 3명이 되면 책 상태를 FULLY_RESERVED로 변경
-        if (currentReservationCount + 1 >= 3) {
-            book.setStatus(BookStatus.FULLY_RESERVED);
+        int nextReservationCount=currentReservationCount+1;
+        BookStatus targetStatus = book.getStatus();
+
+        if (nextReservationCount >= MAX_RESERVATION_COUNT) {
+            targetStatus = BookStatus.FULLY_RESERVED;
+        } else if (nextReservationCount > 0) {
+            targetStatus = BookStatus.RESERVED;
+        }
+
+        // 현재 상태와 다를 때만 상태를 업데이트
+        if (book.getStatus() != targetStatus) {
+            book.setStatus(targetStatus);
             bookRepository.save(book);
         }
     }
@@ -123,7 +134,13 @@ public class BookService {
                 .orElseThrow(()->new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
         reservationRepository.delete(reservation);
 
-        if (book.getStatus() == BookStatus.FULLY_RESERVED && reservationRepository.countActiveReservation(book.getId())-1<3) {
+        int currentReservationCount = reservationRepository.countActiveReservation(book.getId());
+        // 예약 취소시 인원수가 1부터 2이하 --> 책 RESERVED
+        if (currentReservationCount>=1 && currentReservationCount<MAX_RESERVATION_COUNT) {
+            book.setStatus(BookStatus.RESERVED);
+        }
+        // 인원수가 0이다 --> 책 AVAILABLE
+        else if(currentReservationCount==0) {
             book.setStatus(BookStatus.AVAILABLE);
         }
     }
@@ -145,5 +162,16 @@ public class BookService {
             reservation.getUser().setOverdue(true);
             reservationRepository.save(reservation);
         }
+    }
+    public ReservationStatus checkUserBookStatus(Long id, Long userId) {
+        boolean isReserved = reservationRepository.findReservedReservationByBookAndUser(id, userId).isPresent();
+        if (isReserved)
+            return ReservationStatus.RESERVED;
+
+        boolean isBorrowed = reservationRepository.findBorrowedReservationByBookAndUser(id, userId).isPresent();
+        if (isBorrowed)
+            return ReservationStatus.BORROWING;
+
+        return null;
     }
 }

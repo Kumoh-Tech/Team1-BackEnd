@@ -24,6 +24,13 @@ RUN addgroup --system javauser && adduser --system --group javauser
 # Set ownership and switch to non-root user
 COPY --from=builder --chown=javauser:javauser /app/build/libs/club-board_server-0.0.1-SNAPSHOT.jar app.jar
 
+# 🛠️ root 권한으로 전환
+USER root
+
+# curl 설치
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# 🛠️ 다시 비-루트 사용자로 전환
 USER javauser
 
 # Configure JVM options
@@ -31,7 +38,7 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:80/actuator/health || exit 1
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
