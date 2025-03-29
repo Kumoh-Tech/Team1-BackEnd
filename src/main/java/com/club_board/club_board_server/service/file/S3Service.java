@@ -179,6 +179,12 @@ public class S3Service {
 
         String fileUploadUrl = this.generatePutObjectRequestUrl(objectName, request.getContentType());
 
+        String preProfileImageUrl = userService.getProfileImageUrl(userId);
+
+        if (preProfileImageUrl != null) {
+            deleteProfileImage(userId);
+        }
+
         userService.setProfileImageUrl(userId, objectName);
 
         return PresignedProfileImageUrlResponse.builder()
