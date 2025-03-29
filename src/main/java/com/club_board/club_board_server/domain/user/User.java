@@ -46,6 +46,9 @@ public class User {
     private LocalDate lastLoginDate;
 
     @Setter
+    private String profileImageUrl;
+
+    @Setter
     private boolean isOverdue;
 
     @Enumerated(EnumType.STRING)
