@@ -16,14 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.Duration;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -36,8 +30,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-
-
 
     public List<String> showRegisterForm() {
         return Department.showDepartment();
@@ -67,13 +59,9 @@ public class UserService {
             stringRedisTemplate.delete(key);
         }
         catch (Exception e) {
-            e.printStackTrace();
             throw new BusinessException(ExceptionType.UNEXPECTED_SERVER_ERROR);
         }
     }
-
-
-
     public void sendMail(String username) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new BusinessException(ExceptionType.USER_ALREADY_EXIST);
