@@ -2,7 +2,6 @@ package com.club_board.club_board_server.service.user;
 import com.club_board.club_board_server.domain.user.Department;
 import com.club_board.club_board_server.domain.user.Role;
 import com.club_board.club_board_server.domain.user.User;
-import com.club_board.club_board_server.domain.mail.VerificationCode;
 import com.club_board.club_board_server.dto.mail.MailVerifyRequest;
 import com.club_board.club_board_server.dto.user.UserRegisterRequest;
 import com.club_board.club_board_server.repository.user.UserRepository;
@@ -12,21 +11,19 @@ import com.club_board.club_board_server.service.mail.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.Duration;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserService {
 
+    private final StringRedisTemplate stringRedisTemplate;
     @Value("${verification.code.expiry-minutes}")
     private int verificationCodeExpiryMinutes;
 
@@ -34,15 +31,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    private final Map<String, VerificationCode> emailVerificationMap = new ConcurrentHashMap<>();
-    private final Set<String> verifiedEmails = ConcurrentHashMap.newKeySet();
-
     public List<String> showRegisterForm() {
         return Department.showDepartment();
     }
 
     public void register(UserRegisterRequest userRegisterRequest) {
-        if (!isEmailVerified(userRegisterRequest.getUsername())){  // 이메일 인증을 완료했는가
+        String key = "auth:email:" + userRegisterRequest.getUsername();
+        String verificationStatus = stringRedisTemplate.opsForValue().get(key);
+        if (!"VERIFIED".equals(verificationStatus)) { // 이메일 인증이 아직 완료되지 않았을 때
             throw new BusinessException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
         try {
@@ -59,18 +55,13 @@ public class UserService {
                     .registrationDate(LocalDate.now())
                     .role(Role.USER)
                     .build();
-            verifiedEmails.remove(userRegisterRequest.getUsername());
             userRepository.save(user);
+            stringRedisTemplate.delete(key);
         }
         catch (Exception e) {
             throw new BusinessException(ExceptionType.UNEXPECTED_SERVER_ERROR);
         }
     }
-
-    private boolean isEmailVerified(String email) {
-        return verifiedEmails.contains(email);
-    }
-
     public void sendMail(String username) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new BusinessException(ExceptionType.USER_ALREADY_EXIST);
@@ -78,7 +69,8 @@ public class UserService {
 
         int number = createNumber();
         emailService.sendMail(username, number);
-        emailVerificationMap.put(username, new VerificationCode(number, LocalDateTime.now()));
+        String key="auth:email:"+username;
+        stringRedisTemplate.opsForValue().set(key, String.valueOf(number), Duration.ofMinutes(verificationCodeExpiryMinutes));
     }
 
     private int createNumber() { // 메일 코드 생성
@@ -86,30 +78,20 @@ public class UserService {
     }
 
     public void checkVerificationNumber(MailVerifyRequest mailVerifyRequest) { // 이메일 코드 일치 검증
-        String mail = mailVerifyRequest.getUsername();
-        VerificationCode verificationCode = emailVerificationMap.get(mail);
-
-        synchronized (emailVerificationMap) {  // 동시성 문제 방지를 위해 동기화 블록 사용
-            if (verificationCode == null || !isValidCode(verificationCode, mailVerifyRequest)) {
-                throw new BusinessException(ExceptionType.INVALID_EMAIL_CODE);
-            }
-            if (isExpired(verificationCode)) {
-                emailVerificationMap.remove(mail);
-                throw new BusinessException(ExceptionType.EXPIRED_EMAIL_CODE);
-            }
-            emailVerificationMap.remove(mail);
-            verifiedEmails.add(mail);
+        String key="auth:email:"+mailVerifyRequest.getUsername();
+        String requestCode=String.valueOf(mailVerifyRequest.getMailCode());
+        String storedValue = stringRedisTemplate.opsForValue().get(key);// 인증 코드를 레디스에서 가져와야함
+        if(storedValue==null){  // 저장된 인증번호가 없다
+            throw new BusinessException(ExceptionType.EXPIRED_EMAIL_CODE);
         }
+        if("VERIFIED".equals(storedValue))
+            return;
+        // 입력한 코드와 redis에 저장된 코드가 일치하지 않을 때
+        if(!requestCode.equals(storedValue)){
+            throw new BusinessException(ExceptionType.INVALID_EMAIL_CODE);
+        }
+        stringRedisTemplate.opsForValue().set(key, "VERIFIED", Duration.ofMinutes(verificationCodeExpiryMinutes));
     }
-
-    private boolean isExpired(VerificationCode verificationCode) { //코드 만료 체크
-        return verificationCode.getTimestamp().plusMinutes(verificationCodeExpiryMinutes).isBefore(LocalDateTime.now());
-    }
-
-    private boolean isValidCode(VerificationCode verificationCode,MailVerifyRequest mailVerifyRequest) { //코드 일치 체크
-        return verificationCode.getCode() == mailVerifyRequest.getMailCode();
-    }
-
     @Transactional
     public void setProfileImageUrl(Long userId, String objectName) {
         User user = userRepository.findById(userId)
