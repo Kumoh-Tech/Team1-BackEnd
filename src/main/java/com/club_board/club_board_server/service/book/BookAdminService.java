@@ -1,9 +1,6 @@
 package com.club_board.club_board_server.service.book;
 
-import com.club_board.club_board_server.domain.book.Book;
-import com.club_board.club_board_server.domain.book.BookImage;
-import com.club_board.club_board_server.domain.book.Reservation;
-import com.club_board.club_board_server.domain.book.ReservationStatus;
+import com.club_board.club_board_server.domain.book.*;
 import com.club_board.club_board_server.dto.bookAdmin.request.RegisterBookRequest;
 import com.club_board.club_board_server.dto.bookAdmin.request.UpdateBookRequest;
 import com.club_board.club_board_server.dto.bookAdmin.response.*;
@@ -129,9 +126,15 @@ public class BookAdminService {
     public void completeBookReturn(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.RESERVATION_NOT_FOUND));
-
+        Book book = reservation.getBook();
+        int nowCount=reservationRepository.countActiveReservation(book.getId());
         reservation.setStatus(this.switchBorrowingToReturn(reservation.getStatus()));
         reservation.setReturnDate(LocalDateTime.now());
+        if(nowCount==1){
+            book.setStatus(BookStatus.AVAILABLE);
+        }
+        else if(nowCount<=3)
+            book.setStatus(BookStatus.RESERVED);
     }
 
     private ReservationStatus switchBorrowingToReturn(ReservationStatus status) {
