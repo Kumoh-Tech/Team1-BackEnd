@@ -69,11 +69,11 @@ public class AuthService {
             //토큰 발급
             String accessToken=tokenProvider.generateAccessToken(user, Duration.ofMinutes(30));
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
+            addAccessTokenCookie(response, accessToken);
             addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
             return UserLoginResponse.builder()
                     .message(message)
-                    .accessToken(accessToken)
                     .role(user.getRole())
                     .name(user.getName())
                     .department(user.getDepartment())
@@ -148,13 +148,15 @@ public class AuthService {
     Refresh-Token 검증
      */
     @Transactional
-    public String validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
+    public void validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
+        log.info("요청한 refreshToken={}",refreshToken);
         // DB에서 Refresh Token 확인
         RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
+        log.info("DB에서 조회한 refreshToken={}",existingRefreshToken.getRefreshToken());
         // 저장된 기기와 요청 기기 정보 비교
         if(!existingRefreshToken.getUserAgent().equals(requestUserAgent)){
-            throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+            throw new BusinessException(ExceptionType.AUTHORIZATION_DENIED);
         }
         // Refresh Token 유효성 검사
         tokenProvider.validToken(refreshToken, TokenType.REFRESH);
@@ -166,14 +168,26 @@ public class AuthService {
 
         // Refresh Token 만료 임박 시 새로 발급
         refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
-        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofMinutes(10));
+        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
         tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
-            // Cookie에 새 Refresh Token 저장
+        String newAccessToken = tokenProvider.generateAccessToken(user, Duration.ofSeconds(7));
         addRefreshTokenCookie(response,newRefreshToken);
-        // Access Token 발급
-        return tokenProvider.generateAccessToken(user, Duration.ofMinutes(30));
+        addAccessTokenCookie(response, newAccessToken);
     }
 
+    /*
+    Access-Token 쿠키 설정
+     */
+    public void addAccessTokenCookie(HttpServletResponse response, String AccessToken){
+        ResponseCookie cookie = ResponseCookie.from("access-token", AccessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(60*60)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
     /*
     refresh-token 쿠키 설정
      */
@@ -182,7 +196,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
                 .path("/")
-                .maxAge(60*60)
+                .maxAge(60*60*7)
                 .sameSite("None")      // SameSite를 None으로 설정
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());

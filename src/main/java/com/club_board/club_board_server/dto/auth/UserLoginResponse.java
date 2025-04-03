@@ -13,9 +13,6 @@ public class UserLoginResponse {
     private String message;
 
     @NotBlank
-    private String accessToken;
-
-    @NotBlank
     private Role role;
 
     @NotBlank
@@ -26,9 +23,8 @@ public class UserLoginResponse {
 
 
     @Builder
-    public UserLoginResponse(String message ,String accessToken,Role role, String name, String department) {
+    public UserLoginResponse(String message , Role role, String name, String department) {
         this.message = message;
-        this.accessToken = accessToken;
         this.role=role;
         this.name = name;
         this.department = department;
