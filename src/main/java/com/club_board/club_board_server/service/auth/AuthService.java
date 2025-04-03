@@ -149,11 +149,9 @@ public class AuthService {
      */
     @Transactional
     public void validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
-        log.info("요청한 refreshToken={}",refreshToken);
         // DB에서 Refresh Token 확인
         RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
-        log.info("DB에서 조회한 refreshToken={}",existingRefreshToken.getRefreshToken());
         // 저장된 기기와 요청 기기 정보 비교
         if(!existingRefreshToken.getUserAgent().equals(requestUserAgent)){
             throw new BusinessException(ExceptionType.AUTHORIZATION_DENIED);
