@@ -26,6 +26,6 @@ public class RefreshTokenController {
             throw new BusinessException(ExceptionType.NOT_FOUND_REFRESH_TOKEN);
         }
         authService.validateAndHandleRefreshToken(refreshToken, response, requestUserAgent);
-        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(" Refresh Token 재발급 성공"));
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(" Access Token 재발급 성공"));
     }
 }
