@@ -9,7 +9,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "https://chipsatbooks.vercel.app/")
+                .allowedOriginPatterns("http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "https://chipsatbooks.vercel.app/","https://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
