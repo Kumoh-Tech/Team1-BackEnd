@@ -6,6 +6,7 @@ import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("토큰 검사 시작");
         String accessToken = getAccessToken(request);
         // 토큰이 존재할 때
+        log.info("검사 결과={}",accessToken);
         if (accessToken != null) {
             // 토큰 유효성 검사
             tokenProvider.validToken(accessToken,TokenType.ACCESS);
@@ -55,11 +58,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith(TOKEN_PREFIX)) {
-            return bearerToken.substring(TOKEN_PREFIX.length());
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access-token".equals(cookie.getName())) {
+                    log.info("access token={}", cookie.getValue());
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }
-
 }
