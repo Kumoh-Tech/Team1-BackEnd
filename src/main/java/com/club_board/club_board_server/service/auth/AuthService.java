@@ -166,9 +166,9 @@ public class AuthService {
 
         // Refresh Token 만료 임박 시 새로 발급
         refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
-        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
+        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofMinutes(2));
         tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
-        String newAccessToken = tokenProvider.generateAccessToken(user, Duration.ofMinutes(60));
+        String newAccessToken = tokenProvider.generateAccessToken(user, Duration.ofMinutes(1));
         addRefreshTokenCookie(response,newRefreshToken);
         addAccessTokenCookie(response, newAccessToken);
     }
@@ -222,7 +222,7 @@ public class AuthService {
         Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserIdAndUserAgent(user.getId(), userAgent);
         existingToken.ifPresent(refreshTokenRepository::delete);
 
-        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
+        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofMinutes(2));
 
         RefreshToken refreshTokenEntity=new RefreshToken(user.getId(), refreshToken , userAgent);
         refreshTokenRepository.save(refreshTokenEntity);
