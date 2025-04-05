@@ -31,10 +31,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("토큰 검사 시작");
         String accessToken = getAccessToken(request);
         // 토큰이 존재할 때
-        log.info("검사 결과={}",accessToken);
         if (accessToken != null) {
             // 토큰 유효성 검사
             tokenProvider.validToken(accessToken,TokenType.ACCESS);
