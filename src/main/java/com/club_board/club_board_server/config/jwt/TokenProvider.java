@@ -60,6 +60,7 @@ public class TokenProvider {
 
     public void validToken(String token,TokenType tokenType) {
         try {
+            log.info("{} 유효성검사전={}",tokenType,token);
 
             // SecretKeySpec을 사용하여 Key 객체 생성
             String base64SecretKey = jwtProperties.getSecretKey();
