@@ -74,17 +74,21 @@ public class TokenProvider {
                     .getBody();
         } catch (ExpiredJwtException e) { // 토큰이 만료되었을 때
             if(tokenType==TokenType.ACCESS){
+                log.info("액세스 토큰 만료");
                 throw new BusinessException(ExceptionType.EXPIRED_ACCESS_TOKEN);
             }
             else {
+                log.info("리프레시 토큰 만료");
                 throw new BusinessException(ExceptionType.EXPIRED_REFRESH_TOKEN);
             }
         }
         catch (Exception e) { //토큰이 유효하지 않을 때
             if(tokenType==TokenType.ACCESS){
+                log.info("액세스 토큰 유효하지 않음");
                 throw new BusinessException(ExceptionType.INVALID_ACCESS_TOKEN);
             }
             else {
+                log.info("리프레시 토큰 유효하지 않음");
                 throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
             }
         }
