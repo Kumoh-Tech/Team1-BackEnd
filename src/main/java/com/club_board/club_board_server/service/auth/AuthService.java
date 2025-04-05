@@ -67,7 +67,7 @@ public class AuthService {
             User user=userDetails.getUser();
             String userAgent=request.getHeader("User-Agent");
             //토큰 발급
-            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofSeconds(60));
+            String accessToken=tokenProvider.generateAccessToken(user, Duration.ofMinutes(1));
             String refreshToken = generateAndStoreRefreshToken(user, userAgent);
             addAccessTokenCookie(response, accessToken);
             addRefreshTokenCookie(response,refreshToken);
