@@ -5,6 +5,8 @@ import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepo
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,7 +60,7 @@ public class TokenProvider {
         }
     }
 
-    public void validToken(String token,TokenType tokenType) {
+    public void validToken(String token,TokenType tokenType, HttpServletResponse response) {
         try {
             log.info("{} 유효성검사전1={}",tokenType,token);
 
@@ -76,20 +78,24 @@ public class TokenProvider {
         } catch (ExpiredJwtException e) { // 토큰이 만료되었을 때
             if(tokenType==TokenType.ACCESS){
                 log.info("액세스 토큰 만료");
+                clearAccessTokenCookie(response);
                 throw new BusinessException(ExceptionType.EXPIRED_ACCESS_TOKEN);
             }
             else {
                 log.info("리프레시 토큰 만료");
+                clearRefreshTokenCookie(response);
                 throw new BusinessException(ExceptionType.EXPIRED_REFRESH_TOKEN);
             }
         }
         catch (Exception e) { //토큰이 유효하지 않을 때
             if(tokenType==TokenType.ACCESS){
                 log.info("액세스 토큰 유효하지 않음");
+                clearAccessTokenCookie(response);
                 throw new BusinessException(ExceptionType.INVALID_ACCESS_TOKEN);
             }
             else {
                 log.info("리프레시 토큰 유효하지 않음");
+                clearRefreshTokenCookie(response);
                 throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
             }
         }
@@ -117,4 +123,19 @@ public class TokenProvider {
 
         refreshTokenRepository.save(refreshTokenEntity);
     }
+    public void clearAccessTokenCookie(HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("access-token", null);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0); // 쿠키 만료
+        response.addCookie(accessTokenCookie);
+    }
+
+    public void clearRefreshTokenCookie(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refresh-token", null);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0); // 쿠키 만료
+        response.addCookie(refreshTokenCookie);
+    }
+
+
 }

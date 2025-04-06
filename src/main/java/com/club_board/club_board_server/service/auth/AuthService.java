@@ -157,7 +157,7 @@ public class AuthService {
             throw new BusinessException(ExceptionType.AUTHORIZATION_DENIED);
         }
         // Refresh Token 유효성 검사
-        tokenProvider.validToken(refreshToken, TokenType.REFRESH);
+        tokenProvider.validToken(refreshToken, TokenType.REFRESH,response);
 
         // 토큰에서 유저 ID 추출 및 유저 조회
         Long userId = tokenProvider.getClaims(refreshToken).get("id", Long.class);
