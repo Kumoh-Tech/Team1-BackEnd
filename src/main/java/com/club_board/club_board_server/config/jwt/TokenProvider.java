@@ -79,6 +79,7 @@ public class TokenProvider {
         } catch (ExpiredJwtException e) { // 토큰이 만료되었을 때
             if(tokenType==TokenType.ACCESS){
                 log.info("액세스 토큰 만료");
+                clearAccessTokenCookie(response);
                 throw new BusinessException(ExceptionType.EXPIRED_ACCESS_TOKEN);
             }
             else {
