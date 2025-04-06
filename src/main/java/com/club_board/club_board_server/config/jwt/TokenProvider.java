@@ -124,6 +124,7 @@ public class TokenProvider {
         refreshTokenRepository.save(refreshTokenEntity);
     }
     public void clearAccessTokenCookie(HttpServletResponse response) {
+        log.info("액세스 토큰 삭제");
         Cookie accessTokenCookie = new Cookie("access-token", null);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(0); // 쿠키 만료
