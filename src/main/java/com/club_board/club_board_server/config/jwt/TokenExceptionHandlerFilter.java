@@ -35,18 +35,23 @@ public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OnceP
         ExceptionType exceptionType = e.getExceptionType();
         response.setStatus(exceptionType.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8"); // HttpServletResponse: ISO-8859-1 인코딩 사용하기 때문에 한글 출력을 위해 UTF-8 설정
+        response.setCharacterEncoding("UTF-8");
 
-        // CORS 관련 헤더를 명시적으로 추가
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        // CORS 관련 헤더 설정 (와일드카드 대신 실제 origin 사용)
+        String origin = request.getHeader("Origin"); // 요청 헤더의 Origin을 가져옴
+        if(origin == null || origin.isEmpty()){
+            origin = "https://chipsatbooks.vercel.app"; // fallback 값, 필요에 따라 설정
+        }
+        response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+        response.setHeader("Access-Control-Allow-Credentials", "true"); // credentials를 허용하도록
         response.setHeader("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
-        
-        ResponseBody<Void> body= ResponseUtil.createFailureResponse(exceptionType);
-        writeErrorResponse(response,body);
 
+        ResponseBody<Void> body = ResponseUtil.createFailureResponse(exceptionType);
+        writeErrorResponse(response, body);
     }
+
     private void writeErrorResponse(HttpServletResponse response, ResponseBody<Void> body) throws IOException{
         ObjectMapper objectMapper = new ObjectMapper(); // Jackson ObjectMapper 인스턴스 생성
         String json = objectMapper.writeValueAsString(body);  // ResponseBody 객체를 JSON 문자열로 직렬화
