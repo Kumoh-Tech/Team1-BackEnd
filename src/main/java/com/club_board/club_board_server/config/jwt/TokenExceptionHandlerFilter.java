@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,6 +17,7 @@ import java.io.PrintWriter;
 
 
 @Component
+@Slf4j
 public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OncePerRequestFilter : 한 요청당 필터가 딱 한 번만 실행되도록 보장하는 추상 클래스
 
     @Override
@@ -29,6 +31,7 @@ public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OnceP
 
     }
     private void handleBusinessException(HttpServletRequest request, HttpServletResponse response, BusinessException e) throws IOException {
+        log.info("예외 필터 동작");
         ExceptionType exceptionType = e.getExceptionType();
         response.setStatus(exceptionType.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
