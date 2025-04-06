@@ -9,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -123,20 +124,31 @@ public class TokenProvider {
 
         refreshTokenRepository.save(refreshTokenEntity);
     }
+    /*
+Access-Token 쿠키 삭제
+ */
     public void clearAccessTokenCookie(HttpServletResponse response) {
-        log.info("액세스 토큰 삭제");
-        Cookie accessTokenCookie = new Cookie("access-token", null);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0); // 쿠키 만료
-        response.addCookie(accessTokenCookie);
+        ResponseCookie cookie = ResponseCookie.from("access-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
+    /*
+    Refresh-Token 쿠키 삭제
+     */
     public void clearRefreshTokenCookie(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("refresh-token", null);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0); // 쿠키 만료
-        response.addCookie(refreshTokenCookie);
+        ResponseCookie cookie = ResponseCookie.from("refresh-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
-
-
 }

@@ -90,11 +90,10 @@ public class AuthService {
     public void logout(String refreshToken, HttpServletResponse response){
         refreshTokenRepository.findByRefreshToken(refreshToken)
                 .ifPresent(refreshTokenRepository::delete);
-        Cookie cookie = new Cookie("refresh-token",null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        tokenProvider.clearAccessTokenCookie(response);
+        tokenProvider.clearRefreshTokenCookie(response);
     }
+
 
     /*
     임시 비밀번호 찾기 메소드
