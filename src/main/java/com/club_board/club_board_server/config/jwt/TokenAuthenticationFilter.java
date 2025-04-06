@@ -56,10 +56,12 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getAccessToken(HttpServletRequest request) {
+        log.info("토큰 받아볼게용={}",request.getCookies());
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
+                log.info("루프={}",cookie.getName());
                 if ("access-token".equals(cookie.getName())) {
-                    log.info("access token={}", cookie.getValue());
+                    log.info("내가 토큰임ㅋㅋ={}", cookie.getValue());
                     return cookie.getValue();
                 }
             }
