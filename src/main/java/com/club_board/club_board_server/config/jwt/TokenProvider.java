@@ -5,8 +5,10 @@ import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepo
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -58,7 +60,7 @@ public class TokenProvider {
         }
     }
 
-    public void validToken(String token,TokenType tokenType) {
+    public void validToken(String token, TokenType tokenType, HttpServletResponse response) {
         try {
 
             // SecretKeySpec을 사용하여 Key 객체 생성
@@ -74,6 +76,7 @@ public class TokenProvider {
                     .getBody();
         } catch (ExpiredJwtException e) { // 토큰이 만료되었을 때
             if(tokenType==TokenType.ACCESS){
+                clearAccessTokenCookie(response);
                 throw new BusinessException(ExceptionType.EXPIRED_ACCESS_TOKEN);
             }
             else {
@@ -112,4 +115,31 @@ public class TokenProvider {
 
         refreshTokenRepository.save(refreshTokenEntity);
     }
+    /*
+Access-Token 쿠키 삭제
+*/
+    public void clearAccessTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("access-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+    /*
+    Refresh-Token 쿠키 삭제
+     */
+    public void clearRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refresh-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
 }
+

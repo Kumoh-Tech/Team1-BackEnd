@@ -1,4 +1,5 @@
 package com.club_board.club_board_server.config.jwt;
+
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.response.exception.BusinessException;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 
 @Component
 public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OncePerRequestFilter : 한 요청당 필터가 딱 한 번만 실행되도록 보장하는 추상 클래스
@@ -34,15 +34,18 @@ public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OnceP
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8"); // HttpServletResponse: ISO-8859-1 인코딩 사용하기 때문에 한글 출력을 위해 UTF-8 설정
 
-        // CORS 관련 헤더를 명시적으로 추가
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        String origin = request.getHeader("Origin");
+        if(origin == null || origin.isEmpty()){
+            origin = "https://chipsatbooks.vercel.app";
+        }
+        response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
         
         ResponseBody<Void> body= ResponseUtil.createFailureResponse(exceptionType);
         writeErrorResponse(response,body);
-
     }
     private void writeErrorResponse(HttpServletResponse response, ResponseBody<Void> body) throws IOException{
         ObjectMapper objectMapper = new ObjectMapper(); // Jackson ObjectMapper 인스턴스 생성

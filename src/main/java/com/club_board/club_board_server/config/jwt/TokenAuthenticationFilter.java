@@ -1,11 +1,10 @@
 package com.club_board.club_board_server.config.jwt;
 
-import com.club_board.club_board_server.response.exception.BusinessException;
-import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.auth.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         // 토큰이 존재할 때
         if (accessToken != null) {
             // 토큰 유효성 검사
-            tokenProvider.validToken(accessToken,TokenType.ACCESS);
+            tokenProvider.validToken(accessToken,TokenType.ACCESS,response);
             authenticateWithToken(accessToken);
         }
         filterChain.doFilter(request, response);
@@ -55,11 +54,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith(TOKEN_PREFIX)) {
-            return bearerToken.substring(TOKEN_PREFIX.length());
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access-token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }
-
 }
