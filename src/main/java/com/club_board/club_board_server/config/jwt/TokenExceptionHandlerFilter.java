@@ -1,4 +1,5 @@
 package com.club_board.club_board_server.config.jwt;
+
 import com.club_board.club_board_server.response.ResponseBody;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.response.exception.BusinessException;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 
 @Component
 public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OncePerRequestFilter : 한 요청당 필터가 딱 한 번만 실행되도록 보장하는 추상 클래스
