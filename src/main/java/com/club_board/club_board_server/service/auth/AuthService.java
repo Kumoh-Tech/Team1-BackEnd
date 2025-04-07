@@ -3,7 +3,6 @@ import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.config.jwt.TokenType;
 import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.CustomUserDetails;
-import com.club_board.club_board_server.domain.user.Department;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.auth.ResetPasswordRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginRequest;
@@ -13,7 +12,6 @@ import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.mail.EmailService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -90,10 +88,8 @@ public class AuthService {
     public void logout(String refreshToken, HttpServletResponse response){
         refreshTokenRepository.findByRefreshToken(refreshToken)
                 .ifPresent(refreshTokenRepository::delete);
-        Cookie cookie = new Cookie("refresh-token",null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        tokenProvider.clearAccessTokenCookie(response);
+        tokenProvider.clearRefreshTokenCookie(response);
     }
 
     /*
@@ -157,7 +153,7 @@ public class AuthService {
             throw new BusinessException(ExceptionType.AUTHORIZATION_DENIED);
         }
         // Refresh Token 유효성 검사
-        tokenProvider.validToken(refreshToken, TokenType.REFRESH);
+        tokenProvider.validToken(refreshToken, TokenType.REFRESH, response);
 
         // 토큰에서 유저 ID 추출 및 유저 조회
         Long userId = tokenProvider.getClaims(refreshToken).get("id", Long.class);
@@ -194,7 +190,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
                 .path("/")
-                .maxAge(60*60*7)
+                .maxAge(60*60*24*7)
                 .sameSite("None")      // SameSite를 None으로 설정
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());

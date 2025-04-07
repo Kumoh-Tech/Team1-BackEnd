@@ -37,7 +37,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         log.info("검사 결과={}",accessToken);
         if (accessToken != null) {
             // 토큰 유효성 검사
-            tokenProvider.validToken(accessToken,TokenType.ACCESS);
+            tokenProvider.validToken(accessToken,TokenType.ACCESS,response);
             authenticateWithToken(accessToken);
         }
         filterChain.doFilter(request, response);
