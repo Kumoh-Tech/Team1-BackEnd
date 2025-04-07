@@ -72,6 +72,7 @@ public class AuthService {
             addAccessTokenCookie(response, accessToken);
             addRefreshTokenCookie(response,refreshToken);
             String message = "로그인 성공";
+            log.info("로그인={}",accessToken);
             return UserLoginResponse.builder()
                     .message(message)
                     .role(user.getRole())
