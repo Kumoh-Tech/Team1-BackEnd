@@ -6,12 +6,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-@Table(
-        name = "refresh_token",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_refresh_token_user_agent", columnNames = {"user_id", "user_agent"})
-        }
-)
 public class RefreshToken {
 
     @Id

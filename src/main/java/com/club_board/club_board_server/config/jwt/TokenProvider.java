@@ -126,6 +126,7 @@ Access-Token 쿠키 삭제
  */
     public void clearAccessTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("access-token", "")
+                .domain("chipsat.shop")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -140,6 +141,7 @@ Access-Token 쿠키 삭제
      */
     public void clearRefreshTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("refresh-token", "")
+                .domain("chipsat.shop")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
