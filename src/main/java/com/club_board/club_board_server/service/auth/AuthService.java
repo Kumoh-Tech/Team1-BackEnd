@@ -178,7 +178,6 @@ public class AuthService {
      */
     public void addAccessTokenCookie(HttpServletResponse response, String AccessToken){
         ResponseCookie cookie = ResponseCookie.from("access-token", AccessToken)
-                .domain("chipsat.shop")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -192,7 +191,6 @@ public class AuthService {
      */
     public void addRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from("refresh-token", refreshToken)
-                .domain("chipsat.shop")
                 .httpOnly(true)
                 .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
                 .path("/")
