@@ -24,6 +24,9 @@ RUN addgroup --system javauser && adduser --system --group javauser
 # Set ownership and switch to non-root user
 COPY --from=builder --chown=javauser:javauser /app/build/libs/club-board_server-0.0.1-SNAPSHOT.jar app.jar
 
+# app log 디렉토리 생성 및 권한 추가
+RUN mkdir -p /app/logs && chown -R javauser:javauser /app/logs
+
 # 🛠️ root 권한으로 전환
 USER root
 
