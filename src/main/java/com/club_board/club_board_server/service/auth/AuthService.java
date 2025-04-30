@@ -178,7 +178,7 @@ public class AuthService {
                 .secure(true)
                 .path("/")
                 .maxAge(60*60)
-                .sameSite("None")
+                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -191,7 +191,7 @@ public class AuthService {
                 .secure(true)          // 운영 환경에서는 HTTPS 사용 시 true, 개발 환경에서는 false로 설정 가능
                 .path("/")
                 .maxAge(60*60*24*7)
-                .sameSite("None")      // SameSite를 None으로 설정
+                .sameSite("Lax")      // SameSite를 None으로 설정
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }

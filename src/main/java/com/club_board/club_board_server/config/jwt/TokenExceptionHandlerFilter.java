@@ -36,7 +36,7 @@ public class TokenExceptionHandlerFilter extends OncePerRequestFilter { // OnceP
 
         String origin = request.getHeader("Origin");
         if(origin == null || origin.isEmpty()){
-            origin = "https://chipsatbooks.vercel.app";
+            origin = "https://www.chip-sat.com";
         }
         response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
