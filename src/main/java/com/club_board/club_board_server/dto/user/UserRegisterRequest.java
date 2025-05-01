@@ -23,8 +23,8 @@ public class UserRegisterRequest {
     private String department;
 
     @NotBlank
-    @Pattern(message = "학번은 8자리 숫자여야 합니다.",
-            regexp = "^\\d{8}$")
+    @Pattern(message = "학번은 8자리 혹은 10자리 숫자여야 합니다.",
+            regexp = "^(\\d{8}|\\d{10})$")
     private String student_id;
 
     @NotNull
