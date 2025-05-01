@@ -120,6 +120,16 @@ public class BookAdminService {
 
         reservation.setStatus(ReservationStatus.BORROWING);
         reservation.setBorrowDate(LocalDateTime.now());
+
+        Book book = reservation.getBook();
+
+        // 예약 인원 확인
+        int reservationCount = reservationRepository.countActiveReservation(book.getId());
+        if (reservationCount >= 3) {
+            book.setStatus(BookStatus.FULLY_RESERVED);
+        }
+        else
+            book.setStatus(BookStatus.BORROWING);
     }
 
     @Transactional
