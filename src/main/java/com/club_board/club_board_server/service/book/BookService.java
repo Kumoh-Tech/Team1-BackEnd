@@ -11,6 +11,7 @@ import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import com.club_board.club_board_server.service.file.S3Service;
+import com.club_board.club_board_server.service.notification.DiscordWebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,6 +30,7 @@ public class BookService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final S3Service s3Service;
+    private final DiscordWebhookService discordWebhookService;
     private static final int MAX_RESERVATION_COUNT=3;
 
     // 모든 책을 조회, 데이터가 많아질 시 추후 페이징 처리 필요해보임
@@ -123,6 +125,7 @@ public class BookService {
             book.setStatus(targetStatus);
             bookRepository.save(book);
         }
+        discordWebhookService.sendReservationNotification(user.getName(), book.getTitle());
     }
 
     // 예약 취소
