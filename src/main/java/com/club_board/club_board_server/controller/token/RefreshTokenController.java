@@ -1,4 +1,4 @@
-package com.club_board.club_board_server.controller.refreshToken;
+package com.club_board.club_board_server.controller.token;
 import com.club_board.club_board_server.response.ResponseUtil;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;

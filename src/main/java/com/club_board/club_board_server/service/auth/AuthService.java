@@ -1,13 +1,11 @@
 package com.club_board.club_board_server.service.auth;
 import com.club_board.club_board_server.config.jwt.TokenProvider;
 import com.club_board.club_board_server.config.jwt.TokenType;
-import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.CustomUserDetails;
 import com.club_board.club_board_server.domain.user.User;
 import com.club_board.club_board_server.dto.auth.ResetPasswordRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginRequest;
 import com.club_board.club_board_server.dto.auth.UserLoginResponse;
-import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepository;
 import com.club_board.club_board_server.repository.user.UserRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
@@ -35,7 +33,7 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RedisRefreshTokenService redisRefreshTokenService;
     private final EmailService emailService;
     private static final String UPPER_CASE="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String LOWER_CASE="abcdefghijklmnopqrstuvwxyz";
@@ -86,8 +84,7 @@ public class AuthService {
     로그아웃 메소드
      */
     public void logout(String refreshToken, HttpServletResponse response){
-        refreshTokenRepository.findByRefreshToken(refreshToken)
-                .ifPresent(refreshTokenRepository::delete);
+        redisRefreshTokenService.deleteRefreshToken(refreshToken);
         tokenProvider.clearAccessTokenCookie(response);
         tokenProvider.clearRefreshTokenCookie(response);
     }
@@ -145,13 +142,6 @@ public class AuthService {
      */
     @Transactional
     public void validateAndHandleRefreshToken(String refreshToken, HttpServletResponse response, String requestUserAgent) {
-        // DB에서 Refresh Token 확인
-        RefreshToken existingRefreshToken=refreshTokenRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN));
-        // 저장된 기기와 요청 기기 정보 비교
-        if(!existingRefreshToken.getUserAgent().equals(requestUserAgent)){
-            throw new BusinessException(ExceptionType.AUTHORIZATION_DENIED);
-        }
         // Refresh Token 유효성 검사
         tokenProvider.validToken(refreshToken, TokenType.REFRESH, response);
 
@@ -160,12 +150,16 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ExceptionType.USER_NOT_FOUND));
 
-        // Refresh Token 만료 임박 시 새로 발급
-        refreshTokenRepository.delete(existingRefreshToken); // 기존 요청한 리프레시 토큰을 삭제
-        String newRefreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
-        tokenProvider.updateRefreshToken(newRefreshToken, user,requestUserAgent);
+        // Redis에서 Refresh Token 확인 및 기기 정보 비교
+        if (!redisRefreshTokenService.validateRefreshToken(refreshToken, userId, requestUserAgent)) {
+            throw new BusinessException(ExceptionType.INVALID_REFRESH_TOKEN);
+        }
+
+        // 기존 토큰 삭제 및 새 토큰 발급
+        redisRefreshTokenService.deleteRefreshToken(refreshToken);
+        String newRefreshToken = generateAndStoreRefreshToken(user, requestUserAgent);
         String newAccessToken = tokenProvider.generateAccessToken(user, Duration.ofMinutes(60));
-        addRefreshTokenCookie(response,newRefreshToken);
+        addRefreshTokenCookie(response, newRefreshToken);
         addAccessTokenCookie(response, newAccessToken);
     }
 
@@ -213,15 +207,9 @@ public class AuthService {
     /**
      *  로그인 시 Refresh Token 기기별로 저장
      */
-    @Transactional
     public String generateAndStoreRefreshToken(User user, String userAgent){
-        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserIdAndUserAgent(user.getId(), userAgent);
-        existingToken.ifPresent(refreshTokenRepository::delete);
-
-        String refreshToken = tokenProvider.generateRefreshToken(user,Duration.ofDays(7));
-
-        RefreshToken refreshTokenEntity=new RefreshToken(user.getId(), refreshToken , userAgent);
-        refreshTokenRepository.save(refreshTokenEntity);
+        String refreshToken = tokenProvider.generateRefreshToken(user, Duration.ofDays(7));
+        redisRefreshTokenService.storeRefreshToken(user.getId(), userAgent, refreshToken);
         return refreshToken;
     }
 }

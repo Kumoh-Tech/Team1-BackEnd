@@ -1,7 +1,5 @@
 package com.club_board.club_board_server.config.jwt;
-import com.club_board.club_board_server.domain.RefreshToken;
 import com.club_board.club_board_server.domain.user.User;
-import com.club_board.club_board_server.repository.refreshToken.RefreshTokenRepository;
 import com.club_board.club_board_server.response.exception.BusinessException;
 import com.club_board.club_board_server.response.exception.ExceptionType;
 import io.jsonwebtoken.*;
@@ -21,8 +19,6 @@ import java.util.*;
 @Service
 public class TokenProvider {
     private final JwtProperties jwtProperties;
-
-    private final RefreshTokenRepository refreshTokenRepository;
 
     /*
     토큰 생성
@@ -104,16 +100,6 @@ public class TokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-    public void updateRefreshToken(String refreshToken, User user, String userAgent){
-        RefreshToken refreshTokenEntity = refreshTokenRepository.findByUserId(user.getId())
-                .map(existingToken -> {
-                    existingToken.update(refreshToken); // 기존 토큰 업데이트
-                    return existingToken;
-                })
-                .orElseGet(() -> new RefreshToken(user.getId(), refreshToken, userAgent)); // 없으면 새로 생성
-
-        refreshTokenRepository.save(refreshTokenEntity);
     }
     /*
 Access-Token 쿠키 삭제
